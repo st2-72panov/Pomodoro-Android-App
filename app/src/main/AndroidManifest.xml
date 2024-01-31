@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <application
         android:name=".base.AppClass"
         android:allowBackup="true"
@@ -15,7 +16,7 @@
         android:theme="@style/Theme.PomodoroApp"
         >
         <activity
-            android:name=".MainActivity"
+            android:name=".pages.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.PomodoroApp">
             <intent-filter>
@@ -24,7 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".notifications.CloseNotificationReceiver" />
+        <receiver android:name=".notifications.CloseMasterNotificationReceiver" />
     </application>
 
 </manifest>

@@ -28,7 +28,8 @@ class AppClass : Application() {
         masterChannel.description = "Pomodoro timer"
         notificationManager.createNotificationChannel(masterChannel)
 
-        if (notificationManager.isNotificationPolicyAccessGranted) { return }
+        if (notificationManager.isNotificationPolicyAccessGranted)
+            return
         val policyAccessChannel = NotificationChannel(
             PolicyAccessNotificationService.CHANNEL_ID,
             "Name",
@@ -36,16 +37,5 @@ class AppClass : Application() {
         )
         policyAccessChannel.description = "Description"
         notificationManager.createNotificationChannel(policyAccessChannel)
-    }
-
-    fun setDNDMode(state: Boolean) {
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        val interruptionFilter = when (state) {
-            true -> NotificationManager.INTERRUPTION_FILTER_NONE
-            false -> NotificationManager.INTERRUPTION_FILTER_ALL
-        }
-        notificationManager.setInterruptionFilter(interruptionFilter)
     }
 }

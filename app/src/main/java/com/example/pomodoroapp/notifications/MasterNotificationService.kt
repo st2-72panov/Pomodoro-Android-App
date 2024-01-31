@@ -5,7 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import com.example.pomodoroapp.MainActivity
+import com.example.pomodoroapp.pages.MainActivity
 import com.example.pomodoroapp.R
 
 class MasterNotificationService(
@@ -24,7 +24,7 @@ class MasterNotificationService(
         val closeNotificationIntent = PendingIntent.getBroadcast(
             context,
             2,
-            Intent(context, CloseNotificationReceiver::class.java),
+            Intent(context, CloseMasterNotificationReceiver::class.java),
             PendingIntent.FLAG_IMMUTABLE
         )
 

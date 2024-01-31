@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
-import com.example.pomodoroapp.MainActivity
 import com.example.pomodoroapp.R
 
 class PolicyAccessNotificationService(
@@ -34,6 +33,7 @@ class PolicyAccessNotificationService(
             .setSilent(true)
             .setShowWhen(false)
             .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
             .build()
 
         notificationManager.notify(PolicyAccessNotificationService.NOTIFICATION_ID, notification)

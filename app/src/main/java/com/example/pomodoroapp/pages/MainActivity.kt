@@ -1,8 +1,9 @@
-package com.example.pomodoroapp
+package com.example.pomodoroapp.pages
 
 import android.annotation.SuppressLint
+import android.app.NotificationManager
+import android.content.Context
 import android.os.Bundle
-import android.widget.Space
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -11,27 +12,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CutCornerShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,24 +41,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.modifier.modifierLocalConsumer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pomodoroapp.R
+import com.example.pomodoroapp.base.AppClass
 import com.example.pomodoroapp.notifications.MasterNotificationService
 import com.example.pomodoroapp.notifications.PolicyAccessNotificationService
 import com.example.pomodoroapp.ui.theme.Gray
 import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
-import com.example.pomodoroapp.ui.theme.PurpleGrey80
 import com.example.pomodoroapp.ui.theme.indent
 import kotlinx.coroutines.delay
 
@@ -117,7 +107,10 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         if (isOff)  // Buttons: Play
-                            IconButton(onClick = { isWorking = true }) {
+                            IconButton(onClick = {
+                                isWorking = true
+                                changeDNDMode()
+                            }) {
                                 Icon(
                                     painterResource(R.drawable.baseline_play_arrow_48),
                                     null,
@@ -151,7 +144,7 @@ class MainActivity : ComponentActivity() {
                             val barWidth = 200
                             val barHeight = 45
                             val borderWidth = 6
-                            Row() {
+                            Row {
                                 // Compensation Icon
                                 IconButton(onClick = {}, enabled = false) {
                                     Icon(
@@ -238,7 +231,7 @@ class MainActivity : ComponentActivity() {
                             ClickableText(
                                 text = AnnotatedString(timerType),
                                 style = TextStyle(fontSize = 16.sp)
-                            ) { offset ->
+                            ) { _ ->
                                 if (isOff) {
                                     timerType = getNextTimerType(timerType)
                                 }
@@ -266,6 +259,7 @@ class MainActivity : ComponentActivity() {
                                 IconButton(onClick = {
                                     timePassed = 0L
                                     isWorking = false
+                                    changeDNDMode()
                                 }) {
                                     Icon(
                                         painterResource(R.drawable.baseline_stop_48),
@@ -281,7 +275,10 @@ class MainActivity : ComponentActivity() {
                                     painterResource(R.drawable.baseline_play_arrow_48)
                                 else
                                     painterResource(R.drawable.baseline_pause_24)
-                                IconButton(onClick = { isWorking = !isWorking }) {
+                                IconButton(onClick = {
+                                    isWorking = !isWorking
+                                    changeDNDMode()
+                                }) {
                                     Icon(painter, null, Modifier.size(36.dp), Color.DarkGray)
                                 }
                             }
@@ -291,8 +288,30 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        masterNotificationService.showNotification()
-        PolicyAccessNotificationService(applicationContext).showNotification()
+        showNotifications()
+    }
+
+    private fun showNotifications() {
+        MasterNotificationService(applicationContext).showNotification()
+        val notificationManager =
+            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (!notificationManager.isNotificationPolicyAccessGranted)
+            PolicyAccessNotificationService(applicationContext).showNotification()
+    }
+
+    public fun changeDNDMode() {
+        val notificationManager =
+            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (!notificationManager.isNotificationPolicyAccessGranted)
+            return
+
+        val interruptionFilter = when (
+            notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL
+        ) {
+            true -> NotificationManager.INTERRUPTION_FILTER_NONE
+            false -> NotificationManager.INTERRUPTION_FILTER_ALL
+        }
+        notificationManager.setInterruptionFilter(interruptionFilter)
     }
 }
 
