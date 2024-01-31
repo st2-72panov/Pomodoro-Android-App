@@ -119,7 +119,9 @@ class MainActivity : ComponentActivity() {
                         if (isOff)  // Buttons: Play
                             IconButton(onClick = { isWorking = true }) {
                                 Icon(
-                                    painterResource(R.drawable.baseline_play_arrow_48), null, tint = Color.DarkGray
+                                    painterResource(R.drawable.baseline_play_arrow_48),
+                                    null,
+                                    tint = Color.DarkGray
                                 )
                             }
                         else {
@@ -149,7 +151,7 @@ class MainActivity : ComponentActivity() {
                             val barWidth = 200
                             val barHeight = 45
                             val borderWidth = 6
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                            Row() {
                                 // Compensation Icon
                                 IconButton(onClick = {}, enabled = false) {
                                     Icon(
@@ -203,7 +205,10 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 // Start over
-                                IconButton(onClick = { timePassed = 0L }) {
+                                IconButton(onClick = {
+                                    timePassed = 0L
+                                    isWorking = true
+                                }) {
                                     Icon(
                                         painterResource(R.drawable.baseline_refresh_48),
                                         null,
@@ -254,7 +259,7 @@ class MainActivity : ComponentActivity() {
 
                         // <Control buttons>
                         if (!isOff) {
-                            Spacer(Modifier.size(25.dp))
+                            Spacer(Modifier.size(20.dp))
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 // Stop
@@ -262,7 +267,12 @@ class MainActivity : ComponentActivity() {
                                     timePassed = 0L
                                     isWorking = false
                                 }) {
-                                    Icon(painterResource(R.drawable.baseline_stop_48), null, Modifier.size(36.dp), Color.DarkGray)
+                                    Icon(
+                                        painterResource(R.drawable.baseline_stop_48),
+                                        null,
+                                        Modifier.size(36.dp),
+                                        Color.DarkGray
+                                    )
                                 }
 
                                 // Suspend / Resume
