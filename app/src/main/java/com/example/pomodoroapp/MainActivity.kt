@@ -63,6 +63,7 @@ import com.example.pomodoroapp.notifications.PolicyAccessNotificationService
 import com.example.pomodoroapp.ui.theme.Gray
 import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
+import com.example.pomodoroapp.ui.theme.PurpleGrey80
 import com.example.pomodoroapp.ui.theme.indent
 import kotlinx.coroutines.delay
 
@@ -86,8 +87,9 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 var timerType by remember { mutableStateOf(WORK) }
-                var isWorking by remember { mutableStateOf(false) }
+                var isWorking by remember { mutableStateOf(false) }  // if paused also false
                 var timePassed by remember { mutableLongStateOf(0L) }
+                val isOff = !isWorking && timePassed == 0L
 
                 Column {
                     // Upper buttons
@@ -114,11 +116,10 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        if (!isWorking && timePassed == 0L)  // Buttons: Play
+                        if (isOff)  // Buttons: Play
                             IconButton(onClick = { isWorking = true }) {
                                 Icon(
-                                    painter = painterResource(R.drawable.baseline_play_arrow_48),
-                                    contentDescription = null
+                                    painterResource(R.drawable.baseline_play_arrow_48), null, tint = Color.DarkGray
                                 )
                             }
                         else {
@@ -148,40 +149,67 @@ class MainActivity : ComponentActivity() {
                             val barWidth = 200
                             val barHeight = 45
                             val borderWidth = 6
-                            Surface(
-                                Modifier
-                                    .size(barWidth.dp, barHeight.dp)
-                                    .border(
-                                        borderWidth.dp,
-                                        Color(0xFF585858),
-                                        CutCornerShape(5.dp)
-                                    ),
-                                CutCornerShape(5.dp),
-                                Gray
-                            ) {
-                                val padding = borderWidth + 7
-                                BoxWithConstraints(
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                                // Compensation Icon
+                                IconButton(onClick = {}, enabled = false) {
+                                    Icon(
+                                        painterResource(R.drawable.baseline_refresh_48),
+                                        null,
+                                        Modifier.size(36.dp),
+                                        Color.Transparent
+                                    )
+                                }
+
+                                Surface(
                                     Modifier
-                                        .fillMaxSize()
-                                        .padding(padding.dp)) {
-                                    val maxWidth = this.maxWidth
-                                    Row(
-                                        Modifier.fillMaxSize(),
-                                        Arrangement.Start,
-                                        Alignment.CenterVertically
+                                        .size(barWidth.dp, barHeight.dp)
+                                        .border(
+                                            borderWidth.dp,
+                                            Color(0xFF585858),
+                                            CutCornerShape(5.dp)
+                                        ),
+                                    CutCornerShape(5.dp),
+                                    Gray
+                                ) {
+                                    val padding = borderWidth + 7
+                                    BoxWithConstraints(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .padding(padding.dp)
                                     ) {
-                                        val spacing = 4
-                                        val modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(((maxWidth.value - 9 * spacing) / 10).dp)
-                                            .background(Color.White)
-                                        for (i in 0..<value - 1) {
-                                            Box(modifier)
-                                            Spacer(Modifier.width(spacing.dp))
+                                        val maxWidth = this.maxWidth
+                                        Row(
+                                            Modifier.fillMaxSize(),
+                                            Arrangement.Start,
+                                            Alignment.CenterVertically
+                                        ) {
+                                            val spacing = 4
+                                            val modifier = Modifier
+                                                .fillMaxHeight()
+                                                .width(
+                                                    ((maxWidth.value - 9 * spacing) / 10).dp
+                                                )
+                                                .background(
+                                                    if (isWorking) Color.White else Color.Gray
+                                                )
+                                            for (i in 0..<value - 1) {
+                                                Box(modifier)
+                                                Spacer(Modifier.width(spacing.dp))
+                                            }
+                                            if (value != 0)
+                                                Box(modifier)
                                         }
-                                        if (value != 0)
-                                            Box(modifier)
                                     }
+                                }
+
+                                // Start over
+                                IconButton(onClick = { timePassed = 0L }) {
+                                    Icon(
+                                        painterResource(R.drawable.baseline_refresh_48),
+                                        null,
+                                        Modifier.size(36.dp),
+                                        Color.Gray
+                                    )
                                 }
                             }
                             // </Progress bar>
@@ -206,12 +234,12 @@ class MainActivity : ComponentActivity() {
                                 text = AnnotatedString(timerType),
                                 style = TextStyle(fontSize = 16.sp)
                             ) { offset ->
-                                if (!isWorking) {
+                                if (isOff) {
                                     timerType = getNextTimerType(timerType)
                                 }
                             }
 
-                            Spacer(modifier = Modifier.size(4.dp))
+                            Spacer(Modifier.size(4.dp))
 
                             Text(
                                 AnnotatedString(timerDurations[timerType].toString() + " min"),
@@ -225,7 +253,29 @@ class MainActivity : ComponentActivity() {
                         // </Timer name>
 
                         // <Control buttons>
-                        // if (!isWorking && timePassed == 0L)
+                        if (!isOff) {
+                            Spacer(Modifier.size(25.dp))
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                // Stop
+                                IconButton(onClick = {
+                                    timePassed = 0L
+                                    isWorking = false
+                                }) {
+                                    Icon(painterResource(R.drawable.baseline_stop_48), null, Modifier.size(36.dp), Color.DarkGray)
+                                }
+
+                                // Suspend / Resume
+//                                Spacer(Modifier.size(10.dp))
+                                val painter = if (!isWorking)
+                                    painterResource(R.drawable.baseline_play_arrow_48)
+                                else
+                                    painterResource(R.drawable.baseline_pause_24)
+                                IconButton(onClick = { isWorking = !isWorking }) {
+                                    Icon(painter, null, Modifier.size(36.dp), Color.DarkGray)
+                                }
+                            }
+                        }
                         // </Control buttons>
                     }
                 }
