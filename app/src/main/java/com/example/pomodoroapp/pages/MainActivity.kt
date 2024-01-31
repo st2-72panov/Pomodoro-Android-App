@@ -48,7 +48,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pomodoroapp.R
-import com.example.pomodoroapp.base.AppClass
+import com.example.pomodoroapp.sys_functions.changeDNDMode
+import com.example.pomodoroapp.notifications.CompletionNotificationService
 import com.example.pomodoroapp.notifications.MasterNotificationService
 import com.example.pomodoroapp.notifications.PolicyAccessNotificationService
 import com.example.pomodoroapp.ui.theme.Gray
@@ -73,7 +74,7 @@ class MainActivity : ComponentActivity() {
                 val timerDurations = remember {
                     mutableStateMapOf(
                         WORK to 30,
-                        REST to 7
+                        REST to 1
                     )
                 }
                 var timerType by remember { mutableStateOf(WORK) }
@@ -109,7 +110,7 @@ class MainActivity : ComponentActivity() {
                         if (isOff)  // Buttons: Play
                             IconButton(onClick = {
                                 isWorking = true
-                                changeDNDMode()
+                                _changeDNDMode()
                             }) {
                                 Icon(
                                     painterResource(R.drawable.baseline_play_arrow_48),
@@ -136,6 +137,13 @@ class MainActivity : ComponentActivity() {
                                         isWorking = false
                                     timerType = getNextTimerType(timerType)
                                     timePassed = 0L
+
+                                    // <Notification>
+                                    _changeDNDMode()
+                                    CompletionNotificationService(applicationContext).sendNotification()
+                                    delay(5000)
+                                    CompletionNotificationService(applicationContext).deleteNotification()
+                                    // </Notification>
                                 }
                             }
                             // </Timer>
@@ -259,7 +267,7 @@ class MainActivity : ComponentActivity() {
                                 IconButton(onClick = {
                                     timePassed = 0L
                                     isWorking = false
-                                    changeDNDMode()
+                                    _changeDNDMode()
                                 }) {
                                     Icon(
                                         painterResource(R.drawable.baseline_stop_48),
@@ -277,7 +285,7 @@ class MainActivity : ComponentActivity() {
                                     painterResource(R.drawable.baseline_pause_24)
                                 IconButton(onClick = {
                                     isWorking = !isWorking
-                                    changeDNDMode()
+                                    _changeDNDMode()
                                 }) {
                                     Icon(painter, null, Modifier.size(36.dp), Color.DarkGray)
                                 }
@@ -287,31 +295,26 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+            LaunchedEffect(key1 = null) {  // basic notifications
+                MasterNotificationService(applicationContext).showNotification()
+                val nm = getNotificationManager()
+                if (!nm.isNotificationPolicyAccessGranted)
+                    PolicyAccessNotificationService(applicationContext).showNotification()
+            }
         }
-        showNotifications()
     }
 
-    private fun showNotifications() {
-        MasterNotificationService(applicationContext).showNotification()
-        val notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (!notificationManager.isNotificationPolicyAccessGranted)
-            PolicyAccessNotificationService(applicationContext).showNotification()
+    private fun getNotificationManager() : NotificationManager {
+        return applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
-    public fun changeDNDMode() {
-        val notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (!notificationManager.isNotificationPolicyAccessGranted)
-            return
+    private fun sendNotification() {
+        CompletionNotificationService(applicationContext).sendNotification()
+        CompletionNotificationService(applicationContext).deleteNotification()
+    }
 
-        val interruptionFilter = when (
-            notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL
-        ) {
-            true -> NotificationManager.INTERRUPTION_FILTER_NONE
-            false -> NotificationManager.INTERRUPTION_FILTER_ALL
-        }
-        notificationManager.setInterruptionFilter(interruptionFilter)
+    private fun _changeDNDMode() {
+        changeDNDMode(getNotificationManager())
     }
 }
 

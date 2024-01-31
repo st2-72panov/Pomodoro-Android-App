@@ -48,6 +48,6 @@ class MasterNotificationService(
 
     companion object {
         const val CHANNEL_ID = "master_channel"
-        const val NOTIFICATION_ID = 1
+        const val NOTIFICATION_ID = 2
     }
 }
