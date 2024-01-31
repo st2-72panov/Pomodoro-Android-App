@@ -24,7 +24,7 @@ class MasterNotificationService(
         val closeNotificationIntent = PendingIntent.getBroadcast(
             context,
             2,
-            Intent(context, CloseNotificationReseiver::class.java),
+            Intent(context, CloseNotificationReceiver::class.java),
             PendingIntent.FLAG_IMMUTABLE
         )
 
