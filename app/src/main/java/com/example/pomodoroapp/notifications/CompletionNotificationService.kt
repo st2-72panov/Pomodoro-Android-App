@@ -9,6 +9,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import com.example.pomodoroapp.R
+import com.example.pomodoroapp.activities.MainActivity
 
 class CompletionNotificationService(
     private val context: Context
@@ -16,11 +17,17 @@ class CompletionNotificationService(
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-    fun sendNotification() {
+    fun sendNotification(timerType : String) {
+        val activityIntent = PendingIntent.getActivity(
+            context,
+            1,
+            Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentIntent(null)
-            .setContentTitle("ah-bruh cadda-bruh")
+            .setContentIntent(activityIntent)
+            .setContentTitle("Timer $timerType finished")
             .build()
         notificationManager.notify(NOTIFICATION_ID, notification)
     }

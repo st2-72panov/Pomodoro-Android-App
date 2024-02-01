@@ -1,4 +1,4 @@
-package com.example.pomodoroapp.pages
+package com.example.pomodoroapp.activities
 
 import android.annotation.SuppressLint
 import android.app.NotificationManager
@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
@@ -41,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -48,26 +51,36 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pomodoroapp.R
-import com.example.pomodoroapp.sys_functions.changeDNDMode
 import com.example.pomodoroapp.notifications.CompletionNotificationService
 import com.example.pomodoroapp.notifications.MasterNotificationService
 import com.example.pomodoroapp.notifications.PolicyAccessNotificationService
+import com.example.pomodoroapp.sys_functions.DND
 import com.example.pomodoroapp.ui.theme.Gray
 import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
 import com.example.pomodoroapp.ui.theme.indent
 import kotlinx.coroutines.delay
+import kotlin.math.max
 
 const val WORK = "Pomodoro"
 const val REST = "Rest"
 
 class MainActivity : ComponentActivity() {
-    private fun getNextTimerType(t: String): String { return if (t == WORK) REST else WORK }
 
-    @SuppressLint("MutableCollectionMutableState")
+    companion object {
+        public var interruptionFilterBeforePomodoro: Int = 0
+    }
+
+    private fun getNextTimerType(t: String): String {
+        return if (t == WORK) REST else WORK
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val masterNotificationService = MasterNotificationService(applicationContext)
+        interruptionFilterBeforePomodoro = (
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                ).currentInterruptionFilter
 
         setContent {
             PomodoroAppTheme {
@@ -109,8 +122,10 @@ class MainActivity : ComponentActivity() {
                     ) {
                         if (isOff)  // Buttons: Play
                             IconButton(onClick = {
+                                if (timerType == WORK){
+                                    setDNDMode(saveCurrentFilter_getDNDFilter())
+                                }
                                 isWorking = true
-                                _changeDNDMode()
                             }) {
                                 Icon(
                                     painterResource(R.drawable.baseline_play_arrow_48),
@@ -139,8 +154,12 @@ class MainActivity : ComponentActivity() {
                                     timePassed = 0L
 
                                     // <Notification>
-                                    _changeDNDMode()
-                                    CompletionNotificationService(applicationContext).sendNotification()
+                                    if (timerType == WORK) {
+                                        setDNDMode(interruptionFilterBeforePomodoro)
+                                    }
+                                    CompletionNotificationService(applicationContext).sendNotification(
+                                        timerType
+                                    )
                                     delay(5000)
                                     CompletionNotificationService(applicationContext).deleteNotification()
                                     // </Notification>
@@ -158,7 +177,7 @@ class MainActivity : ComponentActivity() {
                                     Icon(
                                         painterResource(R.drawable.baseline_refresh_48),
                                         null,
-                                        Modifier.size(36.dp),
+                                        Modifier.size(30.dp),
                                         Color.Transparent
                                     )
                                 }
@@ -169,9 +188,9 @@ class MainActivity : ComponentActivity() {
                                         .border(
                                             borderWidth.dp,
                                             Color(0xFF585858),
-                                            CutCornerShape(5.dp)
+                                            RoundedCornerShape(5.dp)
                                         ),
-                                    CutCornerShape(5.dp),
+                                    RoundedCornerShape(5.dp),
                                     Gray
                                 ) {
                                     val padding = borderWidth + 7
@@ -208,12 +227,15 @@ class MainActivity : ComponentActivity() {
                                 // Start over
                                 IconButton(onClick = {
                                     timePassed = 0L
-                                    isWorking = true
+                                    if (!isWorking) {
+                                        isWorking = true
+                                        setDNDMode(saveCurrentFilter_getDNDFilter())
+                                    }
                                 }) {
                                     Icon(
-                                        painterResource(R.drawable.baseline_refresh_48),
+                                        painterResource(R.drawable.rounded_refresh_30),
                                         null,
-                                        Modifier.size(36.dp),
+                                        Modifier.size(30.dp),
                                         Color.Gray
                                     )
                                 }
@@ -262,12 +284,14 @@ class MainActivity : ComponentActivity() {
                         if (!isOff) {
                             Spacer(Modifier.size(20.dp))
 
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 // Stop
                                 IconButton(onClick = {
                                     timePassed = 0L
                                     isWorking = false
-                                    _changeDNDMode()
+                                    setDNDMode(interruptionFilterBeforePomodoro)
                                 }) {
                                     Icon(
                                         painterResource(R.drawable.baseline_stop_48),
@@ -278,18 +302,28 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 // Suspend / Resume
-//                                Spacer(Modifier.size(10.dp))
-                                val painter = if (!isWorking)
-                                    painterResource(R.drawable.baseline_play_arrow_48)
-                                else
-                                    painterResource(R.drawable.baseline_pause_24)
+//                                    Spacer(Modifier.size(10.dp))
+                                var DNDMode = interruptionFilterBeforePomodoro
+                                var painter = painterResource(R.drawable.baseline_pause_24)
+                                if (!isWorking) {
+                                    if (timerType == WORK){
+                                        DNDMode = saveCurrentFilter_getDNDFilter()
+                                    }
+                                    painter = painterResource(R.drawable.baseline_play_arrow_48)
+                                }
                                 IconButton(onClick = {
                                     isWorking = !isWorking
-                                    _changeDNDMode()
+                                    setDNDMode(DNDMode)
                                 }) {
                                     Icon(painter, null, Modifier.size(36.dp), Color.DarkGray)
                                 }
                             }
+//                            Surface(
+//                                border = BorderStroke(5.dp, Color.Transparent),
+//                                color = Color(0xFFf0f0f0),
+//                                shape = RoundedCornerShape(5.dp)
+//                            ) {
+//                            }
                         }
                         // </Control buttons>
                     }
@@ -304,17 +338,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun getNotificationManager() : NotificationManager {
+    private fun getNotificationManager(): NotificationManager {
         return applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
-    private fun sendNotification() {
-        CompletionNotificationService(applicationContext).sendNotification()
-        CompletionNotificationService(applicationContext).deleteNotification()
+    private fun setDNDMode(filter: Int = DND.INTERRUPTION_FILTER) {
+        DND.setDNDMode(getNotificationManager(), filter)
     }
 
-    private fun _changeDNDMode() {
-        changeDNDMode(getNotificationManager())
+    private fun saveCurrentFilter_getDNDFilter() : Int {
+        interruptionFilterBeforePomodoro =
+            getNotificationManager().currentInterruptionFilter
+        return max(
+            interruptionFilterBeforePomodoro,
+            DND.INTERRUPTION_FILTER
+        )
     }
 }
 
