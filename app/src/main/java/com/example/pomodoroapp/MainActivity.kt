@@ -51,15 +51,6 @@ import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
 import com.example.pomodoroapp.ui.theme.indent
 import kotlinx.coroutines.delay
 
-const val WORK = "Pomodoro"
-const val REST = "Rest"
-
-/*TODO:
-   1) fix bugs
-   2) settings page
-   3) master notification
-*/
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,17 +59,6 @@ class MainActivity : ComponentActivity() {
                 applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val masterNotificationService = MasterNotificationService(applicationContext)
             PomodoroAppTheme {
-                val vm = viewModel<MainViewModel>()
-
-                val isOff by vm.isOff.collectAsState()
-                val isPaused by vm.isPaused.collectAsState()
-                val isWorking by vm.isWorking.collectAsState()
-                val timerType by vm.timerType.collectAsState()
-
-                val currentTime by vm.currentTime.collectAsState()
-                val endTime by vm.endTime.collectAsState()
-                val secondsPassed by vm.secondsPassed.collectAsState()
-
                 Column {
                     // Upper buttons
                     Row(
@@ -122,15 +102,15 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         else {
-                            LaunchedEffect(key1 = isPaused, key2 = currentTime) {
-                                if (isPaused) {
-                                } else if (currentTime < endTime) {
-                                    delay(100L)
-                                    vm.renewSecondsPassed()
-                                } else {
-                                    vm.finishTimer(nm)
-                                }
-                            }
+//                            LaunchedEffect(key1 = isPaused, key2 = currentTime) {
+//                                if (isPaused) {
+//                                } else if (currentTime < endTime) {
+//                                    delay(100L)
+//                                    vm.renewSecondsPassed()
+//                                } else {
+//                                    vm.finishTimer(nm)
+//                                }
+//                            }
 
                             // <Progress bar>
                             val barWidth = 200

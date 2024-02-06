@@ -14,6 +14,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pomodoroapp.sys_functions.DND
+import com.example.pomodoroapp.util.TimerType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,13 +26,9 @@ import kotlin.math.max
 class MainViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    var WHETHER_SET_DND_MODE = true
-    var WHETHER_CHANGE_TIMER_TYPE_ON_FINISH = true
-    var WHETHER_START_REST_BY_POMODORO_FINISH = true
-
     private val _isOff = MutableStateFlow(true)
     private val _isPaused = MutableStateFlow(false)
-    private val _timerType = MutableStateFlow(WORK)
+    private val _timerType: TimerType
 
     private val _secondsPassed = MutableStateFlow(0)
     private val _startTime = MutableStateFlow(0L)
@@ -40,10 +37,6 @@ class MainViewModel(
     private val _whenPaused = MutableStateFlow(0L)
 
     var interruptionFilterBeforePomodoro = 0
-    val timersDurations = mutableMapOf(
-        WORK to 30,
-        REST to 7
-    )
 
     val isOff = _isOff.asStateFlow()
     val isPaused = _isPaused.asStateFlow()
@@ -74,13 +67,8 @@ class MainViewModel(
 //    var currentTime by mutableLongStateOf(0)  // (seconds)
 //    var whenPaused = 0L
 
-    fun getCurrentTimerDuration(): Int {  // seconds
-        return timersDurations.getOrDefault(timerType.value, 1)
-    }
 
-    private fun getNextTimerType(): String {
-        return if (timerType.value == WORK) REST else WORK
-    }
+
 
     fun setNextTimerType() {
         _timerType.value = getNextTimerType()

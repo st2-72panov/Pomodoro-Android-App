@@ -159,12 +159,13 @@ class MasterNotificationService(
     companion object {
         const val CHANNEL_ID = "master_channel"
         const val NOTIFICATION_ID = 2
-
-        public const val FLAG_PLANE = 0
-        public const val FLAG_RUNNING = 1
-        public const val FLAG_PAUSED = 2
-        public const val FLAG_COMPLETED = 3
-
         public var isOn = true
     }
+}
+
+enum class Flags {
+    IDLE,
+    RUNNING,
+    PAUSED,
+    COMPLETED
 }
