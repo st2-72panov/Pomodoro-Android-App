@@ -16,7 +16,7 @@
         android:theme="@style/Theme.PomodoroApp"
         >
         <activity
-            android:name=".activities.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.PomodoroApp">
             <intent-filter>

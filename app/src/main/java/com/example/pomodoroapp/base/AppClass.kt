@@ -4,13 +4,9 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
-import android.provider.Settings
-import com.example.pomodoroapp.activities.MainActivity
 import com.example.pomodoroapp.notifications.CompletionNotificationService
 import com.example.pomodoroapp.notifications.MasterNotificationService
 import com.example.pomodoroapp.notifications.PolicyAccessNotificationService
-import com.example.pomodoroapp.sys_functions.DND.setDNDMode
 
 class AppClass : Application() {
     override fun onCreate() {

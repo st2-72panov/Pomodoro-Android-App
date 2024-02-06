@@ -1,12 +1,11 @@
-package com.example.pomodoroapp.activities
+package com.example.pomodoroapp
 
-import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
@@ -31,167 +29,56 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.pomodoroapp.R
-import com.example.pomodoroapp.notifications.CompletionNotificationService
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pomodoroapp.notifications.MasterNotificationService
 import com.example.pomodoroapp.notifications.PolicyAccessNotificationService
-import com.example.pomodoroapp.sys_functions.DND
 import com.example.pomodoroapp.ui.theme.Gray
 import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
 import com.example.pomodoroapp.ui.theme.indent
 import kotlinx.coroutines.delay
-import kotlin.math.max
 
 const val WORK = "Pomodoro"
 const val REST = "Rest"
 
+/*TODO:
+   1) fix bugs
+   2) settings page
+   3) master notification
+*/
+
 class MainActivity : ComponentActivity() {
-
-    companion object {
-
-        lateinit var notificationManager: NotificationManager
-
-        public var interruptionFilterBeforePomodoro: Int = 0
-
-        // <> timer variables
-        public var WHETHER_SET_DND_MODE = true
-        public var WHETHER_CHANGE_TIMER_TYPE_ON_FINISH = true
-        public var WHETHER_START_REST_BY_POMODORO_FINISH = true
-
-        public var timerType by mutableStateOf(WORK)
-        public var timerDurations = mutableMapOf(
-            WORK to 30,
-            REST to 7
-        )
-        public var isPaused by mutableStateOf(false)
-        public var isOff by mutableStateOf(true)
-
-        public var startTime by mutableLongStateOf(0) // (seconds) determined inside onClick function
-        public var endTime by mutableLongStateOf(0)  // (seconds) determined inside onClick function
-        public var currentTime by mutableLongStateOf(0)  // (seconds)
-        public var secondsPassed by mutableIntStateOf(0)  // progress bar`s variable
-
-        public var whenPaused: Long = 0
-        // </>
-
-
-        // Timer state
-        fun whetherWorking(): Boolean{
-            return !isOff && !isPaused
-        }
-
-        fun getCurrentTimerDuration(): Int {  // seconds
-            return timerDurations.getOrDefault(timerType, 1)
-        }
-
-        fun getNextTimerType(): String {
-            return if (timerType == WORK) REST else WORK
-        }
-
-        // Manipulations with timer
-        fun startTimer() {
-            if (timerType == WORK)
-                setDNDMode(
-                    saveCurrentFilter_getDNDFilter()
-                )
-            launchTimer()
-            isOff = false
-        }
-
-        fun launchTimer() {
-            secondsPassed = 0
-            currentTime = System.currentTimeMillis() / 1000
-            startTime = currentTime
-            endTime = startTime + getCurrentTimerDuration()
-        }
-
-
-        fun resetTimer() {
-            if (isPaused) {
-                isPaused = false
-                setDNDMode(saveCurrentFilter_getDNDFilter())
-            }
-            launchTimer()
-        }
-
-        fun breakTimer() {
-            isPaused = false
-            isOff = true
-            setDNDMode(interruptionFilterBeforePomodoro)
-        }
-
-        fun pauseTimer() {
-            isPaused = true
-            whenPaused = System.currentTimeMillis() / 1000
-            setDNDMode(interruptionFilterBeforePomodoro)
-        }
-
-        fun resumeTimer() {
-            isPaused = false
-            val delta = System.currentTimeMillis() - whenPaused
-            startTime += delta
-            endTime += delta
-
-            val dnd = when (timerType == WORK) {
-                true -> saveCurrentFilter_getDNDFilter()
-                false -> interruptionFilterBeforePomodoro
-            }
-            setDNDMode(dnd)
-        }
-
-        private fun setDNDMode(filter: Int = DND.INTERRUPTION_FILTER) {
-            if (WHETHER_SET_DND_MODE)
-                DND.setDNDMode(notificationManager, filter)
-        }
-
-        private fun saveCurrentFilter_getDNDFilter(): Int {
-            interruptionFilterBeforePomodoro =
-                notificationManager.currentInterruptionFilter
-            return max(
-                interruptionFilterBeforePomodoro,
-                DND.INTERRUPTION_FILTER
-            )
-        }
-
-        /*Todo: notification*/
-//        fun notifyAboutCompletion() {
-//            CompletionNotificationService(applicationContext).sendNotification(
-//                timerType
-//            )
-//            delay(5000L)
-//            CompletionNotificationService(applicationContext).deleteNotification()
-//        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val masterNotificationService = MasterNotificationService(applicationContext)
-
         setContent {
+            val nm =
+                applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val masterNotificationService = MasterNotificationService(applicationContext)
             PomodoroAppTheme {
+                val vm = viewModel<MainViewModel>()
+
+                val isOff by vm.isOff.collectAsState()
+                val isPaused by vm.isPaused.collectAsState()
+                val isWorking by vm.isWorking.collectAsState()
+                val timerType by vm.timerType.collectAsState()
+
+                val currentTime by vm.currentTime.collectAsState()
+                val endTime by vm.endTime.collectAsState()
+                val secondsPassed by vm.secondsPassed.collectAsState()
+
                 Column {
                     // Upper buttons
                     Row(
@@ -201,14 +88,17 @@ class MainActivity : ComponentActivity() {
                             .padding(indent, indent)
                     ) {
                         IconButton(
-                            onClick = { masterNotificationService.showNotification() }
+                            onClick = {
+                                MasterNotificationService.isOn = true
+                                masterNotificationService.showNotification()
+                            }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Notifications,
                                 contentDescription = null
                             )
                         }
-                        IconButton({ /*TODO: make settings screen*/ }, enabled = !whetherWorking()) {
+                        IconButton({ /*TODO: make settings screen*/ }, enabled = isOff) {
                             Icon(
                                 imageVector = Icons.Default.List,
                                 //painter = painterResource(R.drawable.ic_settings),
@@ -224,7 +114,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         if (isOff)  // Buttons: Play
-                            IconButton(onClick = { startTimer() }) {
+                            IconButton(onClick = { vm.startTimer(nm) }) {
                                 Icon(
                                     painterResource(R.drawable.baseline_play_arrow_48),
                                     null,
@@ -232,31 +122,15 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         else {
-                            // <Timer>
                             LaunchedEffect(key1 = isPaused, key2 = currentTime) {
-                                if (isPaused || isOff) {
+                                if (isPaused) {
                                 } else if (currentTime < endTime) {
                                     delay(100L)
-                                    currentTime = System.currentTimeMillis() / 1000
-                                    secondsPassed = (
-                                            (currentTime - startTime) // / 60
-                                            ).toInt()
+                                    vm.renewSecondsPassed()
                                 } else {
-                                    isOff = true
-                                    isPaused = false
-
-                                    if (timerType == WORK)
-                                        setDNDMode(interruptionFilterBeforePomodoro)
-
-                                    if (WHETHER_CHANGE_TIMER_TYPE_ON_FINISH)
-                                        timerType = getNextTimerType()
-                                    if (WHETHER_START_REST_BY_POMODORO_FINISH && timerType == WORK)
-                                        launchTimer()
-
-//                                    notifyAboutCompletion()
+                                    vm.finishTimer(nm)
                                 }
                             }
-                            // </Timer>
 
                             // <Progress bar>
                             val barWidth = 200
@@ -304,10 +178,10 @@ class MainActivity : ComponentActivity() {
                                                     ((maxWidth.value - 9 * spacing) / 10).dp
                                                 )
                                                 .background(
-                                                    if (whetherWorking()) Color.White else Color.Gray
+                                                    if (isWorking) Color.White else Color.Gray
                                                 )
                                             val quantityOfBoxes: Int =
-                                                10 * secondsPassed / (getCurrentTimerDuration())// * 60)
+                                                10 * secondsPassed / (vm.getCurrentTimerDuration())//TODO: * 60)
                                             for (i in 0..<quantityOfBoxes - 1) {
                                                 Box(modifier)
                                                 Spacer(Modifier.width(spacing.dp))
@@ -319,7 +193,7 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 // Start over
-                                IconButton(onClick = { resetTimer() }) {
+                                IconButton(onClick = { vm.resetTimer(nm) }) {
                                     Icon(
                                         painterResource(R.drawable.rounded_refresh_30),
                                         null,
@@ -348,14 +222,14 @@ class MainActivity : ComponentActivity() {
                                 style = TextStyle(fontSize = 16.sp)
                             ) { _ ->
                                 if (isOff) {
-                                    timerType = getNextTimerType()
+                                    vm.setNextTimerType()
                                 }
                             }
 
                             Spacer(Modifier.size(4.dp))
 
                             Text(
-                                AnnotatedString((getCurrentTimerDuration()).toString() + " min"),
+                                AnnotatedString((vm.getCurrentTimerDuration()).toString() + " min"),
                                 style = TextStyle(
                                     fontFamily = FontFamily.SansSerif,
                                     fontSize = 14.sp
@@ -372,7 +246,7 @@ class MainActivity : ComponentActivity() {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                IconButton(onClick = { breakTimer() }) {
+                                IconButton(onClick = { vm.breakTimer(nm) }) {
                                     Icon(
                                         painterResource(R.drawable.baseline_stop_48),
                                         null,
@@ -385,7 +259,7 @@ class MainActivity : ComponentActivity() {
                                 val modifier = Modifier.size(36.dp)
                                 val color = Color.DarkGray
                                 if (isPaused) {
-                                    IconButton(onClick = { resumeTimer() }) {
+                                    IconButton(onClick = { vm.resumeTimer(nm) }) {
                                         Icon(
                                             painterResource(R.drawable.baseline_play_arrow_48),
                                             null,
@@ -394,7 +268,9 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 } else {
-                                    IconButton(onClick = { pauseTimer() }) {
+                                    IconButton(onClick = {
+                                        vm.pauseTimer(nm)
+                                    }) {
                                         Icon(
                                             painterResource(R.drawable.baseline_pause_24),
                                             null,
@@ -409,11 +285,11 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-            LaunchedEffect(key1 = null) {  // basic notifications
+            // basic notifications
+            if (MasterNotificationService.isOn)
                 MasterNotificationService(applicationContext).showNotification()
-                if (!notificationManager.isNotificationPolicyAccessGranted)
-                    PolicyAccessNotificationService(applicationContext).showNotification()
-            }
+            if (!nm.isNotificationPolicyAccessGranted)
+                PolicyAccessNotificationService(applicationContext).showNotification()
         }
     }
 }
