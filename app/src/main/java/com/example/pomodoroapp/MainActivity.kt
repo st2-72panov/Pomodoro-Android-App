@@ -1,11 +1,14 @@
 package com.example.pomodoroapp
 
 import android.app.NotificationManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -29,9 +32,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,17 +44,45 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pomodoroapp.notifications.MasterNotificationService
 import com.example.pomodoroapp.notifications.PolicyAccessNotificationService
+import com.example.pomodoroapp.service.PomodoroTimer
+import com.example.pomodoroapp.service.ServicePendingIntents.triggerTimerService
+import com.example.pomodoroapp.service.TimerService
 import com.example.pomodoroapp.ui.theme.Gray
 import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
 import com.example.pomodoroapp.ui.theme.indent
-import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
+
+    private var isBound by mutableStateOf(false)
+    private lateinit var timerService: TimerService
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as TimerService.TimerServiceBinder
+            timerService = binder.getService()
+            isBound = true
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            isBound = false
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Intent(this, TimerService::class.java).also { intent ->
+            bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unbindService(connection)
+        isBound = false
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -60,6 +91,7 @@ class MainActivity : ComponentActivity() {
             val masterNotificationService = MasterNotificationService(applicationContext)
             PomodoroAppTheme {
                 Column {
+                    val isOff = timerService.timer.timerState == PomodoroTimer.States.Idle
                     // Upper buttons
                     Row(
                         horizontalArrangement = Arrangement.End,
@@ -67,15 +99,12 @@ class MainActivity : ComponentActivity() {
                             .fillMaxWidth()
                             .padding(indent, indent)
                     ) {
-                        IconButton(
-                            onClick = {
-                                MasterNotificationService.isOn = true
-                                masterNotificationService.showNotification()
-                            }
-                        ) {
+                        IconButton(onClick = {
+                            MasterNotificationService.isOn = true
+                            masterNotificationService.showNotification()
+                        }) {
                             Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = null
+                                imageVector = Icons.Default.Notifications, contentDescription = null
                             )
                         }
                         IconButton({ /*TODO: make settings screen*/ }, enabled = isOff) {
@@ -94,7 +123,11 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         if (isOff)  // Buttons: Play
-                            IconButton(onClick = { vm.startTimer(nm) }) {
+                            IconButton(onClick = {
+                                triggerTimerService(
+                                    applicationContext, TimerService.Actions.Restart
+                                )
+                            }) {
                                 Icon(
                                     painterResource(R.drawable.baseline_play_arrow_48),
                                     null,
@@ -131,13 +164,10 @@ class MainActivity : ComponentActivity() {
                                     Modifier
                                         .size(barWidth.dp, barHeight.dp)
                                         .border(
-                                            borderWidth.dp,
-                                            Color.DarkGray,
+                                            borderWidth.dp, Color.DarkGray,
 //                                            Color(0xFF585858),
                                             RoundedCornerShape(5.dp)
-                                        ),
-                                    RoundedCornerShape(5.dp),
-                                    Gray
+                                        ), RoundedCornerShape(5.dp), Gray
                                 ) {
                                     val padding = borderWidth + 7
                                     BoxWithConstraints(
@@ -158,22 +188,26 @@ class MainActivity : ComponentActivity() {
                                                     ((maxWidth.value - 9 * spacing) / 10).dp
                                                 )
                                                 .background(
-                                                    if (isWorking) Color.White else Color.Gray
+                                                    if (timerService.timer.timerState == PomodoroTimer.States.Running) Color.White
+                                                    else Color.Gray
                                                 )
                                             val quantityOfBoxes: Int =
-                                                10 * secondsPassed / (vm.getCurrentTimerDuration())//TODO: * 60)
+                                                10 * timerService.timer.remainingSeconds / timerService.timer.type.duration
                                             for (i in 0..<quantityOfBoxes - 1) {
                                                 Box(modifier)
                                                 Spacer(Modifier.width(spacing.dp))
                                             }
-                                            if (quantityOfBoxes != 0)
-                                                Box(modifier)
+                                            if (quantityOfBoxes != 0) Box(modifier)
                                         }
                                     }
                                 }
 
                                 // Start over
-                                IconButton(onClick = { vm.resetTimer(nm) }) {
+                                IconButton(onClick = {
+                                    triggerTimerService(
+                                        applicationContext, TimerService.Actions.Restart
+                                    )
+                                }) {
                                     Icon(
                                         painterResource(R.drawable.rounded_refresh_30),
                                         null,
@@ -198,23 +232,25 @@ class MainActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.size(2.dp))
 
                             ClickableText(
-                                text = AnnotatedString(timerType),
+                                text = AnnotatedString(timerService.timer.type.name),
                                 style = TextStyle(fontSize = 16.sp)
                             ) { _ ->
                                 if (isOff) {
-                                    vm.setNextTimerType()
+                                    triggerTimerService(
+                                        applicationContext,
+                                        TimerService.Actions.ChangeTimerType
+                                    )
                                 }
                             }
 
                             Spacer(Modifier.size(4.dp))
 
                             Text(
-                                AnnotatedString((vm.getCurrentTimerDuration()).toString() + " min"),
-                                style = TextStyle(
-                                    fontFamily = FontFamily.SansSerif,
-                                    fontSize = 14.sp
-                                ),
-                                color = Gray
+                                AnnotatedString(
+                                    (timerService.timer.type.duration.toString() + " min")
+                                ), style = TextStyle(
+                                    fontFamily = FontFamily.SansSerif, fontSize = 14.sp
+                                ), color = Gray
                             )
                         }
                         // </Timer name>
@@ -226,7 +262,11 @@ class MainActivity : ComponentActivity() {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                IconButton(onClick = { vm.breakTimer(nm) }) {
+                                IconButton(onClick = {
+                                    triggerTimerService(
+                                        applicationContext, TimerService.Actions.Stop
+                                    )
+                                }) {
                                     Icon(
                                         painterResource(R.drawable.baseline_stop_48),
                                         null,
@@ -238,8 +278,12 @@ class MainActivity : ComponentActivity() {
                                 // Suspend / Resume
                                 val modifier = Modifier.size(36.dp)
                                 val color = Color.DarkGray
-                                if (isPaused) {
-                                    IconButton(onClick = { vm.resumeTimer(nm) }) {
+                                if (timerService.timer.timerState == PomodoroTimer.States.Paused) {
+                                    IconButton(onClick = {
+                                        triggerTimerService(
+                                            applicationContext, TimerService.Actions.Resume
+                                        )
+                                    }) {
                                         Icon(
                                             painterResource(R.drawable.baseline_play_arrow_48),
                                             null,
@@ -249,7 +293,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                 } else {
                                     IconButton(onClick = {
-                                        vm.pauseTimer(nm)
+                                        triggerTimerService(
+                                            applicationContext, TimerService.Actions.Pause
+                                        )
                                     }) {
                                         Icon(
                                             painterResource(R.drawable.baseline_pause_24),
@@ -266,10 +312,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             // basic notifications
-            if (MasterNotificationService.isOn)
-                MasterNotificationService(applicationContext).showNotification()
-            if (!nm.isNotificationPolicyAccessGranted)
-                PolicyAccessNotificationService(applicationContext).showNotification()
+            if (MasterNotificationService.isOn) MasterNotificationService(applicationContext).showNotification()
+            if (!nm.isNotificationPolicyAccessGranted) PolicyAccessNotificationService(
+                applicationContext
+            ).showNotification()
         }
     }
 }

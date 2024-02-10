@@ -6,20 +6,19 @@ import androidx.compose.runtime.setValue
 import com.example.pomodoroapp.util.TimerPreferences.restTimerType
 import com.example.pomodoroapp.util.TimerPreferences.workTimerType
 import androidx.compose.runtime.mutableIntStateOf
-import com.example.pomodoroapp.service.ServicePendingIntents.triggerTimerService
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 import kotlin.time.Duration.Companion.seconds
 
 class PomodoroTimer(
-    private val owner: TimerService
+    private val onFinish: () -> Unit
 ) {
     private lateinit var timer: Timer
-    private var timerState by mutableStateOf(States.Idle)
+    var timerState by mutableStateOf(States.Idle)
     private var _remaining = 0.seconds
     var remainingSeconds by mutableIntStateOf(0)
     var uiRemainingSeconds = "00:00"
-    var timerType by mutableStateOf(workTimerType)
+    var type by mutableStateOf(workTimerType)
         private set
 
     fun launch() {
@@ -56,15 +55,15 @@ class PomodoroTimer(
 
     private fun finish() {
         stop()
-        triggerTimerService(owner, TimerService.Actions.Finish.name)
+        onFinish()
     }
 
     fun changeType() {
-        timerType = if (timerType == workTimerType) restTimerType else workTimerType
+        type = if (type == workTimerType) restTimerType else workTimerType
     }
 
     private fun setDuration() {
-        _remaining = (timerType.duration * 60).seconds
+        _remaining = (type.duration * 60).seconds
     }
 
     private fun updatePublic() {
@@ -75,7 +74,7 @@ class PomodoroTimer(
     }
 
 
-    private enum class States {
+    enum class States {
         Idle, Running, Paused
     }
 }

@@ -4,7 +4,6 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import com.example.pomodoroapp.notifications.CompletionNotificationService
 import com.example.pomodoroapp.notifications.MasterNotificationService
 import com.example.pomodoroapp.notifications.PolicyAccessNotificationService
 
@@ -17,14 +16,6 @@ class AppClass : Application() {
     private fun createNotificationChannels() {
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        val soundChannel = NotificationChannel(
-            CompletionNotificationService.CHANNEL_ID,
-            "Sound channel",
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
-        soundChannel.description = "Sound channel"
-        notificationManager.createNotificationChannel(soundChannel)
 
         val masterChannel = NotificationChannel(
             MasterNotificationService.CHANNEL_ID,
