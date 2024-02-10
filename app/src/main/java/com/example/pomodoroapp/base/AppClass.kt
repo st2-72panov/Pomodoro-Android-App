@@ -1,29 +1,24 @@
 package com.example.pomodoroapp.base
-
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import com.example.pomodoroapp.notifications.MasterNotificationService
-import com.example.pomodoroapp.notifications.PolicyAccessNotificationService
+import com.example.pomodoroapp.service.TimerServiceHelper
 
 class AppClass : Application() {
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannels()
-    }
 
-    private fun createNotificationChannels() {
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val masterChannel = NotificationChannel(
-            MasterNotificationService.CHANNEL_ID,
-            "Master channel",
+        val foregroundServiceChannel = NotificationChannel(
+            TimerServiceHelper.SERVICE_CHANNEL_ID,
+            "Foreground service channel",
             NotificationManager.IMPORTANCE_HIGH
         )
-        masterChannel.description = "Pomodoro timer"
-        notificationManager.createNotificationChannel(masterChannel)
+        foregroundServiceChannel.description = "Pomodoro timer"
+        notificationManager.createNotificationChannel(foregroundServiceChannel)
 
         if (notificationManager.isNotificationPolicyAccessGranted)
             return

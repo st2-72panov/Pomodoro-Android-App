@@ -1,5 +1,4 @@
 package com.example.pomodoroapp.service
-
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,17 +7,21 @@ import com.example.pomodoroapp.util.TimerPreferences.workTimerType
 import androidx.compose.runtime.mutableIntStateOf
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
-import kotlin.time.Duration.Companion.seconds
 
 class PomodoroTimer(
-    private val onFinish: () -> Unit
+    private val onTick: () -> Unit,
+    private val onComplete: () -> Unit
 ) {
     private lateinit var timer: Timer
-    var timerState by mutableStateOf(States.Idle)
-    private var _remaining = 0.seconds
-    var remainingSeconds by mutableIntStateOf(0)
-    var uiRemainingSeconds = "00:00"
+    var state by mutableStateOf(States.Idle)
+        private set
     var type by mutableStateOf(workTimerType)
+        private set
+
+    private var _remaining = 0
+    var passed by mutableIntStateOf(0)
+        private set
+    var uiRemainingTime: String? = null
         private set
 
     fun launch() {
@@ -28,53 +31,54 @@ class PomodoroTimer(
     }
 
     fun resume() {
-        timer = fixedRateTimer(initialDelay = 300L, period = 1000L) {
-            _remaining.minus(1.seconds)
+        timer = fixedRateTimer(initialDelay = 500L, period = 1000L) {
+            --_remaining
+            passed++
             updatePublic()
-            if (remainingSeconds == 0) finish()
+
+            if (_remaining == 0) {
+                stop()
+                state = States.Completed
+                onComplete()
+            }
+            onTick()  // performs even ↑if (true)↑
         }
-        timerState = States.Running
+        state = States.Running
     }
 
     fun restart() {
-        if (timerState == States.Running)
+        if (state == States.Running)
             stop()
         launch()
     }
 
     fun pause() {
         timer.cancel()
-        timerState = States.Paused
+        state = States.Paused
     }
 
     fun stop() {
-        if (timerState == States.Running)
+        if (state == States.Running)
             timer.cancel()
-        timerState = States.Idle
-    }
-
-    private fun finish() {
-        stop()
-        onFinish()
+        state = States.Idle
     }
 
     fun changeType() {
         type = if (type == workTimerType) restTimerType else workTimerType
+        state = States.Idle
     }
 
     private fun setDuration() {
-        _remaining = (type.duration * 60).seconds
+        _remaining = type.duration
+        passed = 0
     }
 
     private fun updatePublic() {
-        remainingSeconds = _remaining.inWholeSeconds.toInt()
-        uiRemainingSeconds = _remaining.toComponents { minutes, seconds, _ ->
-            String.format("%02d:%02d", minutes, seconds)
-        }
+        uiRemainingTime = String.format("%02d:%02d", _remaining / 60, _remaining % 60)
     }
 
 
     enum class States {
-        Idle, Running, Paused
+        Idle, Running, Paused, Completed
     }
 }

@@ -1,14 +1,9 @@
-package com.example.pomodoroapp.notifications
-
+package com.example.pomodoroapp.base
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.Icon
 import androidx.core.app.NotificationCompat
 import com.example.pomodoroapp.R
 
@@ -26,13 +21,13 @@ class PolicyAccessNotificationService(
             PendingIntent.FLAG_IMMUTABLE
         )
         val notification =
-            NotificationCompat.Builder(context, PolicyAccessNotificationService.CHANNEL_ID)
+            NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.baseline_app_settings_alt_24)
             .setContentTitle(
                 "Grant the notification policy access"
             )
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("Grant the notification policy access to allow this app " +
+                .bigText("to allow this app " +
                     "to enable Do Not Disturb mode while running Pomodoro"))
             .setSilent(true)
             .setShowWhen(false)
@@ -40,12 +35,11 @@ class PolicyAccessNotificationService(
             .setAutoCancel(true)
             .build()
 
-        notificationManager.notify(PolicyAccessNotificationService.NOTIFICATION_ID, notification)
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
-    fun deleteNotification() { notificationManager.cancel(NOTIFICATION_ID) }
 
     companion object {
         const val CHANNEL_ID = "policy_access_channel"
-        const val NOTIFICATION_ID = 3
+        const val NOTIFICATION_ID = 2
     }
 }
