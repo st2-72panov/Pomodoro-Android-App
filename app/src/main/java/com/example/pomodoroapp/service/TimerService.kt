@@ -106,7 +106,7 @@ class TimerService : Service() {
         return TimerServiceHelper.provideNotification(
             this,
             timer.state,
-            timer.type.name,
+            this.resources.getString(timer.type.resourceId),
             timer.uiRemainingTime
         )
     }

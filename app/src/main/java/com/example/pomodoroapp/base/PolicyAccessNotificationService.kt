@@ -1,4 +1,5 @@
 package com.example.pomodoroapp.base
+
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -22,18 +23,17 @@ class PolicyAccessNotificationService(
         )
         val notification =
             NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.baseline_app_settings_alt_24)
-            .setContentTitle(
-                "Grant the notification policy access"
-            )
-            .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("to allow this app " +
-                    "to enable Do Not Disturb mode while running Pomodoro"))
-            .setSilent(true)
-            .setShowWhen(false)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
+                .setSmallIcon(R.drawable.baseline_app_settings_alt_24)
+                .setContentTitle(context.resources.getString(R.string.policy_access_text))
+                .setStyle(
+                    NotificationCompat.BigTextStyle()
+                        .bigText(context.resources.getString(R.string.policy_access_text))
+                )
+                .setSilent(true)
+                .setShowWhen(false)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
     }

@@ -1,4 +1,5 @@
 package com.example.pomodoroapp.service
+
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
@@ -36,7 +37,7 @@ object TimerServiceHelper {
     fun provideNotification(
         context: Context,
         flag: Flags,
-        timerType: String,
+        timerName: String,
         uiRemainingTime: String?,
     ): Notification {
         val notification = NotificationCompat.Builder(context, SERVICE_CHANNEL_ID)
@@ -54,55 +55,58 @@ object TimerServiceHelper {
             .setSilent(flag != Flags.Completed)
             .setShowWhen(flag == Flags.Completed)
             .setContentTitle(
-                "Pomodoro Timer ($timerType)" + when (flag) {
-                    Flags.Running -> ": $uiRemainingTime"
-                    Flags.Paused -> ": $uiRemainingTime - paused"
-                    else -> ""
+                "$timerName: " + when (flag) {
+                    Flags.Running -> "$uiRemainingTime"
+                    Flags.Paused -> "$uiRemainingTime - ${context.resources.getString(R.string.state_paused)}"
+                    else -> context.resources.getString(R.string.state_idle)
                 }
             )
 
         when (flag) {
             Flags.Idle, Flags.Completed -> {
-                notification.addAction(
-                    R.drawable.baseline_play_arrow_48,
-                    "Launch",
-                    getPendingIntent(context, TimerService.Actions.Launch)
-                )
+                notification
+                    .addAction(
+                        R.drawable.baseline_play_arrow_48,
+                        context.resources.getString(R.string.button_launch),
+                        getPendingIntent(context, TimerService.Actions.Launch)
+                    )
+                    .addAction(
+                        R.drawable.baseline_swap_vert_12,
+                        context.resources.getString(R.string.button_change_timer),
+                        getPendingIntent(context, TimerService.Actions.ChangeTimerType)
+                    )
+                    .addAction(
+                        0,
+                        context.resources.getString(R.string.button_cancel),
+                        getPendingIntent(context, TimerService.Actions.Cancel)
+                    )
             }
 
             Flags.Running, Flags.Paused -> {
                 if (flag == Flags.Running)
                     notification.addAction(
                         R.drawable.baseline_pause_24,
-                        "Pause",
+                        context.resources.getString(R.string.button_pause),
                         getPendingIntent(context, TimerService.Actions.Pause)
                     )
                 else
                     notification.addAction(
                         R.drawable.sharp_resume_24,
-                        "Resume",
+                        context.resources.getString(R.string.button_resume),
                         getPendingIntent(context, TimerService.Actions.Resume)
                     )
                 notification
                     .addAction(
                         R.drawable.baseline_stop_48,
-                        "Stop",
+                        context.resources.getString(R.string.button_stop),
                         getPendingIntent(context, TimerService.Actions.Stop)
                     ).addAction(
                         R.drawable.rounded_refresh_30,
-                        "Restart",
+                        context.resources.getString(R.string.button_restart),
                         getPendingIntent(context, TimerService.Actions.Restart)
                     )
             }
         }
-
-        notification
-            .setOngoing(true)
-            .addAction(
-                0,
-                "Cancel",
-                getPendingIntent(context, TimerService.Actions.Cancel)
-            )
         return notification.build()
     }
 }

@@ -96,7 +96,7 @@ fun MainUI(timerService: TimerService) {
                 Spacer(modifier = Modifier.size(2.dp))
 
                 ClickableText(
-                    text = AnnotatedString(timerService.timer.type.name),
+                    text = AnnotatedString(context.resources.getString(timerService.timer.type.resourceId)),
                     style = TextStyle(fontSize = 16.sp)
                 ) { _ ->
                     if (isOff) {
