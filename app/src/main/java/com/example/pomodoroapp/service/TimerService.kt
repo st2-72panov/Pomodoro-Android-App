@@ -88,6 +88,7 @@ class TimerService : Service() {
 
     private fun onTimerComplete() {
         unsetDND()
+        updateNotifications()
         if (CHANGE_TIMER_TYPE_ON_FINISH)
             timer.changeType()
         if (AUTOSTART_REST_BY_POMODORO_FINISH && timer.type == restTimerType)
