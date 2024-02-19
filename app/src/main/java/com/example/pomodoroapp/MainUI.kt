@@ -32,6 +32,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.pomodoroapp.service.PomodoroTimer
 import com.example.pomodoroapp.service.TimerService
 import com.example.pomodoroapp.service.TimerServiceHelper
@@ -40,7 +41,10 @@ import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.indent
 
 @Composable
-fun MainUI(timerService: TimerService) {
+fun MainUI(
+    timerService: TimerService,
+    navController: NavController
+) {
     val context = LocalContext.current
     val isOff = when (timerService.timer.state) {
         PomodoroTimer.States.Idle, PomodoroTimer.States.Completed -> true
@@ -54,7 +58,7 @@ fun MainUI(timerService: TimerService) {
                 .fillMaxWidth()
                 .padding(indent, indent)
         ) {
-            IconButton({ /*TODO: make settings screen*/ }, enabled = isOff) {
+            IconButton({ navController.navigate("SettingsUI") }, enabled = isOff) {
                 Icon(
                     imageVector = Icons.Default.List,
                     //painter = painterResource(R.drawable.ic_settings),
@@ -63,7 +67,7 @@ fun MainUI(timerService: TimerService) {
             }
         }
 
-        // Main
+        // Main area
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,

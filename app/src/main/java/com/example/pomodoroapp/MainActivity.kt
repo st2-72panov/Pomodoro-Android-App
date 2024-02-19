@@ -10,6 +10,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.pomodoroapp.service.TimerService
 import com.example.pomodoroapp.service.TimerServiceHelper.triggerTimerService
 import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
@@ -48,7 +51,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PomodoroAppTheme {
-                if (isBound) MainUI(timerService!!)
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "MainUI") {
+                    composable("MainUI") {
+                        if (isBound) MainUI(timerService!!, navController)
+                    }
+                    composable("SettingsUI") {
+                        if (isBound) SettingsUI(timerService!!, navController)
+                    }
+                }
             }
         }
     }
