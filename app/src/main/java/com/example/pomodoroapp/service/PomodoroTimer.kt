@@ -2,9 +2,9 @@ package com.example.pomodoroapp.service
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.pomodoroapp.util.TimerPreferences.restTimerType
-import com.example.pomodoroapp.util.TimerPreferences.workTimerType
 import androidx.compose.runtime.mutableIntStateOf
+import com.example.pomodoroapp.R
+import com.example.pomodoroapp.util.TimerPreferences.timerTypes
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
@@ -15,7 +15,7 @@ class PomodoroTimer(
     private lateinit var timer: Timer
     var state by mutableStateOf(States.Idle)
         private set
-    var type by mutableStateOf(workTimerType)
+    var typeId by mutableIntStateOf(R.string.work)
         private set
 
     private var _remaining = 0
@@ -64,12 +64,12 @@ class PomodoroTimer(
     }
 
     fun changeType() {
-        type = if (type == workTimerType) restTimerType else workTimerType
+        typeId = if (typeId == R.string.work) R.string.rest else R.string.work
         state = States.Idle
     }
 
-    private fun setDuration() {
-        _remaining = type.duration
+    fun setDuration() {
+        _remaining = timerTypes[typeId]!!
         passed = 0
     }
 

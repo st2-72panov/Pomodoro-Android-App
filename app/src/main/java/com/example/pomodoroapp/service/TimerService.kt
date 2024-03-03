@@ -6,12 +6,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import com.example.pomodoroapp.R
 import com.example.pomodoroapp.base.PolicyAccessNotificationService
 import com.example.pomodoroapp.util.NotificationPreferences.DND_WHILE_WORKING
 import com.example.pomodoroapp.util.TimerPreferences.AUTOSTART_REST_BY_POMODORO_FINISH
 import com.example.pomodoroapp.util.TimerPreferences.CHANGE_TIMER_TYPE_ON_FINISH
-import com.example.pomodoroapp.util.TimerPreferences.restTimerType
-import com.example.pomodoroapp.util.TimerPreferences.workTimerType
 import kotlin.math.max
 import kotlin.system.exitProcess
 
@@ -91,7 +90,7 @@ class TimerService : Service() {
         updateNotifications()
         if (CHANGE_TIMER_TYPE_ON_FINISH)
             timer.changeType()
-        if (AUTOSTART_REST_BY_POMODORO_FINISH && timer.type == restTimerType)
+        if (AUTOSTART_REST_BY_POMODORO_FINISH && timer.typeId == R.string.rest)
             launchTimer()
     }
 
@@ -106,7 +105,7 @@ class TimerService : Service() {
         return TimerServiceHelper.provideNotification(
             this,
             timer.state,
-            this.resources.getString(timer.type.resourceId),
+            this.resources.getString(timer.typeId),
             timer.uiRemainingTime
         )
     }
@@ -114,7 +113,7 @@ class TimerService : Service() {
     private fun areDNDModeChangesForbidden(): Boolean {
         return !DND_WHILE_WORKING ||
                 !notificationManager.isNotificationPolicyAccessGranted ||
-                timer.type != workTimerType
+                timer.typeId != R.string.work
     }
 
     private fun setDND() {

@@ -39,6 +39,7 @@ import com.example.pomodoroapp.service.TimerServiceHelper
 import com.example.pomodoroapp.ui.theme.Gray
 import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.indent
+import com.example.pomodoroapp.util.TimerPreferences.timerTypes
 
 @Composable
 fun MainUI(
@@ -100,7 +101,7 @@ fun MainUI(
                 Spacer(modifier = Modifier.size(2.dp))
 
                 ClickableText(
-                    text = AnnotatedString(context.resources.getString(timerService.timer.type.resourceId)),
+                    text = AnnotatedString(context.resources.getString(timerService.timer.typeId)),
                     style = TextStyle(fontSize = 16.sp)
                 ) { _ ->
                     if (isOff) {
@@ -115,7 +116,7 @@ fun MainUI(
 
                 Text(
                     AnnotatedString(
-                        (timerService.timer.type.duration / 60).toString() + " min"
+                        (timerTypes[timerService.timer.typeId]!! / 60).toString() + " min"
                     ), style = TextStyle(
                         fontFamily = FontFamily.SansSerif, fontSize = 14.sp
                     ), color = Gray
@@ -231,7 +232,7 @@ fun PomodoroProgressBar(timerService: TimerService) {
                             else Color.Gray
                         )
                     val quantityOfBoxes: Int =
-                        10 * timerService.timer.passed / timerService.timer.type.duration
+                        10 * timerService.timer.passed / timerTypes[timerService.timer.typeId]!!
                     for (i in 0..<quantityOfBoxes - 1) {
                         Box(modifier)
                         Spacer(Modifier.width(spacing.dp))
