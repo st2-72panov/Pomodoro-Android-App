@@ -42,7 +42,7 @@ object TimerServiceHelper {
         uiRemainingTime: String?,
     ): Notification {
         val notification = NotificationCompat.Builder(context, SERVICE_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.lasso)
             .setContentIntent(
                 PendingIntent.getActivity(
                     context,
@@ -123,7 +123,7 @@ object SoundService {
         typeId: Int
     ): Notification {
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.lasso)
             .setContentIntent(
                 PendingIntent.getActivity(
                     context,

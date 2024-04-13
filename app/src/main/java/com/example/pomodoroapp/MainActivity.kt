@@ -18,7 +18,6 @@ import com.example.pomodoroapp.service.TimerServiceHelper.triggerTimerService
 import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
 
 class MainActivity : ComponentActivity() {
-
     private var isBound by mutableStateOf(false)
     private var timerService by mutableStateOf(null as TimerService?)
     private val connection = object : ServiceConnection {

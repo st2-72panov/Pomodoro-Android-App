@@ -24,7 +24,7 @@ class PolicyAccessNotificationService(
         val notification =
             NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.baseline_app_settings_alt_24)
-                .setContentTitle(context.resources.getString(R.string.policy_access_text))
+                .setContentTitle(context.resources.getString(R.string.policy_access_title))
                 .setStyle(
                     NotificationCompat.BigTextStyle()
                         .bigText(context.resources.getString(R.string.policy_access_text))
