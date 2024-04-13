@@ -13,6 +13,8 @@
     <string name="state_idle">idle</string>
     <string name="state_paused">paused</string>
 
+    <string name="finished">has been finished</string>
+
     <string name="policy_access_title">Grant the notification policy access</string>
     <string name="policy_access_text">to allow this app to enable Do Not Disturb mode while running Pomodoro</string>
 </resources>

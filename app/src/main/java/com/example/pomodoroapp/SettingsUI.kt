@@ -39,7 +39,7 @@ import androidx.navigation.NavController
 import com.example.pomodoroapp.service.PomodoroTimer
 import com.example.pomodoroapp.service.TimerService
 import com.example.pomodoroapp.ui.theme.indent
-import com.example.pomodoroapp.util.TimerPreferences.timerTypes
+import com.example.pomodoroapp.util.Preferences.timerTypes
 
 @Composable
 fun SettingsUI(

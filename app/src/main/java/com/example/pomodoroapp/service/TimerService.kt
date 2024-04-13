@@ -8,15 +8,16 @@ import android.os.Binder
 import android.os.IBinder
 import com.example.pomodoroapp.R
 import com.example.pomodoroapp.base.PolicyAccessNotificationService
-import com.example.pomodoroapp.util.NotificationPreferences.DND_WHILE_WORKING
-import com.example.pomodoroapp.util.TimerPreferences.AUTOSTART_REST_BY_POMODORO_FINISH
-import com.example.pomodoroapp.util.TimerPreferences.CHANGE_TIMER_TYPE_ON_FINISH
+import com.example.pomodoroapp.util.Preferences.AUTOSTART_REST_BY_POMODORO_FINISH
+import com.example.pomodoroapp.util.Preferences.CHANGE_TIMER_TYPE_ON_FINISH
+import com.example.pomodoroapp.util.Preferences.DETACHED_COMPLETION_NOTIFICATION
+import com.example.pomodoroapp.util.Preferences.DND_WHILE_WORKING
 import kotlin.math.max
 import kotlin.system.exitProcess
 
 class TimerService : Service() {
     var timer = PomodoroTimer(
-        { updateNotifications() },
+        { updateForeground() },
         { onTimerComplete() }
     )
         private set
@@ -75,7 +76,7 @@ class TimerService : Service() {
         }
         when (intent?.action ?: intent?.getStringExtra("action")) {
             Actions.Show.name, Actions.Cancel.name -> {}
-            else -> updateNotifications()
+            else -> updateForeground()
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -87,14 +88,19 @@ class TimerService : Service() {
 
     private fun onTimerComplete() {
         unsetDND()
-        updateNotifications()
+        if (DETACHED_COMPLETION_NOTIFICATION)
+            notificationManager.notify(
+                SoundService.NOTIFICATION_ID,
+                SoundService.provideNotification(this, timer.typeId)
+            )
+        updateForeground()
         if (CHANGE_TIMER_TYPE_ON_FINISH)
             timer.changeType()
         if (AUTOSTART_REST_BY_POMODORO_FINISH && timer.typeId == R.string.rest)
             launchTimer()
     }
 
-    private fun updateNotifications() {
+    private fun updateForeground() {
         notificationManager.notify(
             TimerServiceHelper.SERVICE_NOTIFICATION_ID,
             getForegroundNotification()

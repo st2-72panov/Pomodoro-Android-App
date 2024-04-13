@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
 import com.example.pomodoroapp.R
-import com.example.pomodoroapp.util.TimerPreferences.timerTypes
+import com.example.pomodoroapp.util.Preferences.timerTypes
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 

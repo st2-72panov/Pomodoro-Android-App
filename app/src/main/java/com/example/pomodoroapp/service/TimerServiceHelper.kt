@@ -7,6 +7,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.example.pomodoroapp.MainActivity
 import com.example.pomodoroapp.R
+import com.example.pomodoroapp.util.Preferences.DETACHED_COMPLETION_NOTIFICATION
 
 private typealias Flags = PomodoroTimer.States
 
@@ -52,7 +53,7 @@ object TimerServiceHelper {
             )
             .setAutoCancel(false)
             .setOngoing(true)
-            .setSilent(flag != Flags.Completed)
+            .setSilent(flag != Flags.Completed && DETACHED_COMPLETION_NOTIFICATION)
             .setShowWhen(flag == Flags.Completed)
             .setContentTitle(
                 "$timerName: " + when (flag) {
@@ -108,5 +109,32 @@ object TimerServiceHelper {
             }
         }
         return notification.build()
+    }
+}
+
+
+object SoundService {
+    private const val flag = PendingIntent.FLAG_IMMUTABLE
+    const val CHANNEL_ID = "sound_channel"
+    const val NOTIFICATION_ID = 2
+
+    fun provideNotification(
+        context: Context,
+        typeId: Int
+    ): Notification {
+        return NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    context,
+                    1,
+                    Intent(context, MainActivity::class.java),
+                    flag
+                )
+            )
+            .setContentTitle(
+                context.resources.getString(typeId) + " " + context.resources.getString(R.string.finished)
+            )
+            .build()
     }
 }

@@ -40,6 +40,6 @@ class PolicyAccessNotificationService(
 
     companion object {
         const val CHANNEL_ID = "policy_access_channel"
-        const val NOTIFICATION_ID = 2
+        const val NOTIFICATION_ID = 3
     }
 }

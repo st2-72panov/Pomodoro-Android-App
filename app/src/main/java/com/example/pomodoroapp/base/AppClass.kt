@@ -3,6 +3,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import com.example.pomodoroapp.service.SoundService
 import com.example.pomodoroapp.service.TimerServiceHelper
 
 class AppClass : Application() {
@@ -20,12 +21,20 @@ class AppClass : Application() {
         foregroundServiceChannel.description = "Pomodoro timer"
         notificationManager.createNotificationChannel(foregroundServiceChannel)
 
+        val soundChannel = NotificationChannel(
+            SoundService.CHANNEL_ID,
+            "Sound channel",
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        soundChannel.description = "Channel of notifications"
+        notificationManager.createNotificationChannel(soundChannel)
+
         if (notificationManager.isNotificationPolicyAccessGranted)
             return
         val policyAccessChannel = NotificationChannel(
             PolicyAccessNotificationService.CHANNEL_ID,
             "Policy Access",
-            NotificationManager.IMPORTANCE_HIGH
+            NotificationManager.IMPORTANCE_DEFAULT
         )
         policyAccessChannel.description = "Provide notification policy access"
         notificationManager.createNotificationChannel(policyAccessChannel)

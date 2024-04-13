@@ -39,7 +39,7 @@ import com.example.pomodoroapp.service.TimerServiceHelper
 import com.example.pomodoroapp.ui.theme.Gray
 import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.indent
-import com.example.pomodoroapp.util.TimerPreferences.timerTypes
+import com.example.pomodoroapp.util.Preferences.timerTypes
 
 @Composable
 fun MainUI(
