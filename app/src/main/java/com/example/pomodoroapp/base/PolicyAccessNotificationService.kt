@@ -1,5 +1,4 @@
 package com.example.pomodoroapp.base
-
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context

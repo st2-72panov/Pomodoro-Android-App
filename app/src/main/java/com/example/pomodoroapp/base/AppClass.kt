@@ -5,11 +5,14 @@ import android.app.NotificationManager
 import android.content.Context
 import com.example.pomodoroapp.service.SoundService
 import com.example.pomodoroapp.service.TimerServiceHelper
+import com.example.pomodoroapp.PreferencesStore
+import kotlinx.coroutines.CoroutineScope
 
 class AppClass : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        // Notifications
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 

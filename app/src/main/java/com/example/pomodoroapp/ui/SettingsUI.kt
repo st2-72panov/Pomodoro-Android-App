@@ -1,5 +1,4 @@
-package com.example.pomodoroapp
-
+package com.example.pomodoroapp.ui
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,15 +36,17 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.pomodoroapp.PreferencesStore
 import com.example.pomodoroapp.service.PomodoroTimer
 import com.example.pomodoroapp.service.TimerService
 import com.example.pomodoroapp.ui.theme.indent
-import com.example.pomodoroapp.util.Preferences.timerTypes
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsUI(
-    timerService: TimerService,
-    navController: NavController
+    timerService: TimerService, navController: NavController, preferencesStore: PreferencesStore
 ) {
     Column {
         // Upper buttons
@@ -68,25 +70,36 @@ fun SettingsUI(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize(),
         ) {
-            if (timerService.timer.state == PomodoroTimer.States.Running) {
+            if (timerService.timer.state == PomodoroTimer.States.RUNNING) {
                 Text("Pause the timer to change the settings")
             } else {
                 Text(AnnotatedString("Timers' durations"))
                 Row(horizontalArrangement = Arrangement.Center) {
+                    var debounceJob1: Job? = null
+                    val scope1 = rememberCoroutineScope()
+                    var debounceJob2: Job? = null
+                    val scope2 = rememberCoroutineScope()
+
                     CircularList(
-                        timerTypes[R.string.work]!! / 60,
-                        {minutes ->
-                            timerTypes[R.string.work] = minutes * 60
-                            timerService.timer.setDuration()
-                        }
-                    )
+                        preferencesStore.appPreferences.value!!.workDuration / 60, { minutes ->
+                            debounceJob1?.cancel()
+                            debounceJob1 = scope1.launch {
+                                delay(500)
+                                preferencesStore.writeIntData(
+                                    minutes * 60, PreferencesStore.PreferenceName.WORK_DURATION
+                                )
+                            }
+                        })
                     CircularList(
-                        timerTypes[R.string.rest]!! / 60,
-                        {minutes ->
-                            timerTypes[R.string.rest] = minutes * 60
-                            timerService.timer.setDuration()
-                        }
-                    )
+                        preferencesStore.appPreferences.value!!.restDuration / 60, { minutes ->
+                            debounceJob2?.cancel()
+                            debounceJob2 = scope2.launch {
+                                delay(500)
+                                preferencesStore.writeIntData(
+                                    minutes * 60, PreferencesStore.PreferenceName.WORK_DURATION
+                                )
+                            }
+                        })
                 }
             }
         }
@@ -133,43 +146,36 @@ fun CircularList(
             lazyListState = scrollState
         )
     ) {
-        items(
-            count = Int.MAX_VALUE,
-            itemContent = { i ->
-                val item = itemsState[i % itemsState.size]
-                Box(
-                    modifier = Modifier
-                        .height(itemHeight)
-                        .fillMaxWidth()
-                        .onGloballyPositioned { coordinates ->
-                            val y = coordinates.positionInParent().y - itemHalfHeight
-                            val parentHalfHeight =
-                                (coordinates.parentCoordinates?.size?.height ?: 0) / 2f
-                            val isSelected =
-                                (y > parentHalfHeight - itemHalfHeight && y < parentHalfHeight + itemHalfHeight)
-                            if (isSelected && lastSelectedIndex != i) {
-                                onItemSelected(item)
-                                lastSelectedIndex = i
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = item.toString(),
-                        style = textStyle,
-                        color = if (lastSelectedIndex == i) {
-                            selectedTextColor
-                        } else {
-                            textColor
-                        },
-                        fontSize = if (lastSelectedIndex == i) {
-                            textStyle.fontSize * itemScaleFact
-                        } else {
-                            textStyle.fontSize
+        items(count = Int.MAX_VALUE, itemContent = { i ->
+            val item = itemsState[i % itemsState.size]
+            Box(
+                modifier = Modifier
+                    .height(itemHeight)
+                    .fillMaxWidth()
+                    .onGloballyPositioned { coordinates ->
+                        val y = coordinates.positionInParent().y - itemHalfHeight
+                        val parentHalfHeight =
+                            (coordinates.parentCoordinates?.size?.height ?: 0) / 2f
+                        val isSelected =
+                            (y > parentHalfHeight - itemHalfHeight && y < parentHalfHeight + itemHalfHeight)
+                        if (isSelected && lastSelectedIndex != i) {
+                            onItemSelected(item)
+                            lastSelectedIndex = i
                         }
-                    )
-                }
+                    }, contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = item.toString(), style = textStyle, color = if (lastSelectedIndex == i) {
+                        selectedTextColor
+                    } else {
+                        textColor
+                    }, fontSize = if (lastSelectedIndex == i) {
+                        textStyle.fontSize * itemScaleFact
+                    } else {
+                        textStyle.fontSize
+                    }
+                )
             }
-        )
+        })
     }
 }

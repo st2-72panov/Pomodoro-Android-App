@@ -1,4 +1,4 @@
-package com.example.pomodoroapp
+package com.example.pomodoroapp.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -33,22 +33,29 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.pomodoroapp.PreferencesStore
+import com.example.pomodoroapp.R
 import com.example.pomodoroapp.service.PomodoroTimer
 import com.example.pomodoroapp.service.TimerService
 import com.example.pomodoroapp.service.TimerServiceHelper
 import com.example.pomodoroapp.ui.theme.Gray
 import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.indent
-import com.example.pomodoroapp.util.Preferences.timerTypes
 
 @Composable
 fun MainUI(
-    timerService: TimerService,
-    navController: NavController
+    timerService: TimerService, navController: NavController, preferencesStore: PreferencesStore
 ) {
     val context = LocalContext.current
+    val appPreferences = preferencesStore.appPreferences
+    val timerDuration =  // since typeId — mutableIntStateOf, there is no problems with plain "="
+        if (timerService.timer.typeId == R.string.work)
+            appPreferences.value!!.workDuration
+        else
+            appPreferences.value!!.restDuration
+
     val isOff = when (timerService.timer.state) {
-        PomodoroTimer.States.Idle, PomodoroTimer.States.Completed -> true
+        PomodoroTimer.States.IDLE, PomodoroTimer.States.COMPLETED -> true
         else -> false
     }
     Column {
@@ -77,7 +84,7 @@ fun MainUI(
             if (isOff)  // Buttons: Play
                 IconButton(onClick = {
                     TimerServiceHelper.triggerTimerService(
-                        context, TimerService.Actions.Launch
+                        context, TimerService.Actions.LAUNCH
                     )
                 }) {
                     Icon(
@@ -86,16 +93,14 @@ fun MainUI(
                         tint = Color.DarkGray
                     )
                 }
-            else PomodoroProgressBar(timerService)
+            else PomodoroProgressBar(timerService, preferencesStore)
 
             Spacer(Modifier.size(12.dp))
 
             // <Timer name>
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painterResource(R.drawable.baseline_swap_vert_16),
-                    null,
-                    tint = LightGray
+                    painterResource(R.drawable.baseline_swap_vert_16), null, tint = LightGray
                 )
 
                 Spacer(modifier = Modifier.size(2.dp))
@@ -106,8 +111,7 @@ fun MainUI(
                 ) { _ ->
                     if (isOff) {
                         TimerServiceHelper.triggerTimerService(
-                            context,
-                            TimerService.Actions.ChangeTimerType
+                            context, TimerService.Actions.CHANGE_TIMER_TYPE
                         )
                     }
                 }
@@ -116,7 +120,7 @@ fun MainUI(
 
                 Text(
                     AnnotatedString(
-                        (timerTypes[timerService.timer.typeId]!! / 60).toString() + " min"
+                        (timerDuration / 60).toString() + " min"
                     ), style = TextStyle(
                         fontFamily = FontFamily.SansSerif, fontSize = 14.sp
                     ), color = Gray
@@ -133,7 +137,7 @@ fun MainUI(
                 ) {
                     IconButton(onClick = {
                         TimerServiceHelper.triggerTimerService(
-                            context, TimerService.Actions.Stop
+                            context, TimerService.Actions.STOP
                         )
                     }) {
                         Icon(
@@ -147,10 +151,10 @@ fun MainUI(
                     // Suspend / Resume
                     val modifier = Modifier.size(36.dp)
                     val color = Color.DarkGray
-                    if (timerService.timer.state == PomodoroTimer.States.Paused) {
+                    if (timerService.timer.state == PomodoroTimer.States.PAUSED) {
                         IconButton(onClick = {
                             TimerServiceHelper.triggerTimerService(
-                                context, TimerService.Actions.Resume
+                                context, TimerService.Actions.RESUME
                             )
                         }) {
                             Icon(
@@ -163,14 +167,11 @@ fun MainUI(
                     } else {
                         IconButton(onClick = {
                             TimerServiceHelper.triggerTimerService(
-                                context, TimerService.Actions.Pause
+                                context, TimerService.Actions.PAUSE
                             )
                         }) {
                             Icon(
-                                painterResource(R.drawable.baseline_pause_24),
-                                null,
-                                modifier,
-                                color
+                                painterResource(R.drawable.baseline_pause_24), null, modifier, color
                             )
                         }
                     }
@@ -183,8 +184,16 @@ fun MainUI(
 
 
 @Composable
-fun PomodoroProgressBar(timerService: TimerService) {
+fun PomodoroProgressBar(
+    timerService: TimerService, preferencesStore: PreferencesStore
+) {
     val context = LocalContext.current
+    val appPreferences = preferencesStore.appPreferences
+    val timerDuration =  // since ↓typeId↓ — mutableIntStateOf, there is no problems with plain "="
+        if (timerService.timer.typeId == R.string.work)
+            appPreferences.value!!.workDuration
+        else
+            appPreferences.value!!.restDuration
 
     val barWidth = 200
     val barHeight = 45
@@ -217,9 +226,7 @@ fun PomodoroProgressBar(timerService: TimerService) {
             ) {
                 val maxWidth = this.maxWidth
                 Row(
-                    Modifier.fillMaxSize(),
-                    Arrangement.Start,
-                    Alignment.CenterVertically
+                    Modifier.fillMaxSize(), Arrangement.Start, Alignment.CenterVertically
                 ) {
                     val spacing = 4
                     val modifier = Modifier
@@ -228,12 +235,11 @@ fun PomodoroProgressBar(timerService: TimerService) {
                             ((maxWidth.value - 9 * spacing) / 10).dp
                         )
                         .background(
-                            if (timerService.timer.state == PomodoroTimer.States.Running) Color.White
+                            if (timerService.timer.state == PomodoroTimer.States.RUNNING) Color.White
                             else Color.Gray
                         )
-                    val quantityOfBoxes: Int =
-                        10 * timerService.timer.passed / timerTypes[timerService.timer.typeId]!!
-                    for (i in 0..<quantityOfBoxes - 1) {
+                    val quantityOfBoxes: Int = 10 * timerService.timer.passed / timerDuration
+                    for (i in 0 ..< quantityOfBoxes - 1) {
                         Box(modifier)
                         Spacer(Modifier.width(spacing.dp))
                     }
@@ -245,7 +251,7 @@ fun PomodoroProgressBar(timerService: TimerService) {
         // Start over
         IconButton(onClick = {
             TimerServiceHelper.triggerTimerService(
-                context, TimerService.Actions.Restart
+                context, TimerService.Actions.RESTART
             )
         }) {
             Icon(

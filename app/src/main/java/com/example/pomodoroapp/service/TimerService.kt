@@ -2,63 +2,58 @@ package com.example.pomodoroapp.service
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import com.example.pomodoroapp.R
 import com.example.pomodoroapp.base.PolicyAccessNotificationService
-import com.example.pomodoroapp.util.Preferences.AUTOSTART_REST_BY_POMODORO_FINISH
-import com.example.pomodoroapp.util.Preferences.CHANGE_TIMER_TYPE_ON_FINISH
-import com.example.pomodoroapp.util.Preferences.DETACHED_COMPLETION_NOTIFICATION
-import com.example.pomodoroapp.util.Preferences.DND_WHILE_WORKING
+import com.example.pomodoroapp.PreferencesStore.AppPreferences
+import com.google.gson.Gson
 import kotlin.math.max
 import kotlin.system.exitProcess
 
 class TimerService : Service() {
-    var timer = PomodoroTimer(
-        { updateForeground() },
-        { onTimerComplete() }
-    )
-        private set
     private var interruptionFilterBeforePomodoro = 0
+    private lateinit var appPreferences: AppPreferences
+    lateinit var timer: PomodoroTimer
+        private set
 
     private val binder = TimerServiceBinder()
     private lateinit var notificationManager: NotificationManager
 
     override fun onCreate() {
         super.onCreate()
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action ?: intent?.getStringExtra("action")) {
 
-            Actions.Launch.name -> launchTimer()
-            Actions.Resume.name -> {
+            Actions.LAUNCH.name -> launchTimer()
+            Actions.RESUME.name -> {
                 setDND()
                 timer.resume()
             }
 
-            Actions.Restart.name -> {
-                if (timer.state == PomodoroTimer.States.Paused)
+            Actions.RESTART.name -> {
+                if (timer.state == PomodoroTimer.States.PAUSED)
                     setDND()
                 timer.restart()
             }
 
-            Actions.Pause.name -> {
+            Actions.PAUSE.name -> {
                 unsetDND()
                 timer.pause()
             }
 
-            Actions.Stop.name -> {
-                if (timer.state == PomodoroTimer.States.Running)
+            Actions.STOP.name -> {
+                if (timer.state == PomodoroTimer.States.RUNNING)
                     unsetDND()
                 timer.stop()
             }
 
-            Actions.ChangeTimerType.name -> timer.changeType()
-            Actions.Show.name -> {
+            Actions.CHANGE_TIMER_TYPE.name -> timer.changeType()
+            Actions.SHOW.name -> {
                 startForeground(
                     TimerServiceHelper.SERVICE_NOTIFICATION_ID,
                     getForegroundNotification()
@@ -67,15 +62,25 @@ class TimerService : Service() {
                     PolicyAccessNotificationService(this).showNotification()
             }
 
-            Actions.Cancel.name -> {
+            Actions.CANCEL.name -> {
                 notificationManager.cancel(TimerServiceHelper.SERVICE_NOTIFICATION_ID)
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
                 exitProcess(0)
             }
+
+            Actions.UPDATE_PREFERENCES.name -> {
+                val jsonPreferences = intent?.getStringExtra("preferences")
+                appPreferences = Gson().fromJson(jsonPreferences, AppPreferences::class.java)
+                timer = PomodoroTimer(
+                    appPreferences,
+                    { updateForeground() },
+                    { onTimerComplete() }
+                )
+            }
         }
         when (intent?.action ?: intent?.getStringExtra("action")) {
-            Actions.Show.name, Actions.Cancel.name -> {}
+            Actions.SHOW.name, Actions.CANCEL.name -> {}
             else -> updateForeground()
         }
         return super.onStartCommand(intent, flags, startId)
@@ -88,15 +93,15 @@ class TimerService : Service() {
 
     private fun onTimerComplete() {
         unsetDND()
-        if (DETACHED_COMPLETION_NOTIFICATION)
+        if (appPreferences.makeDetachedCompletionNotification)
             notificationManager.notify(
                 SoundService.NOTIFICATION_ID,
                 SoundService.provideNotification(this, timer.typeId)
             )
         updateForeground()
-        if (CHANGE_TIMER_TYPE_ON_FINISH)
+        if (appPreferences.changeTimerTypeOnFinish)
             timer.changeType()
-        if (AUTOSTART_REST_BY_POMODORO_FINISH && timer.typeId == R.string.rest)
+        if (appPreferences.autostartRestAfterWork && timer.typeId == R.string.rest)
             launchTimer()
     }
 
@@ -112,12 +117,13 @@ class TimerService : Service() {
             this,
             timer.state,
             this.resources.getString(timer.typeId),
-            timer.uiRemainingTime
+            timer.uiRemainingTime,
+            appPreferences.makeDetachedCompletionNotification
         )
     }
 
     private fun areDNDModeChangesForbidden(): Boolean {
-        return !DND_WHILE_WORKING ||
+        return !appPreferences.dndWhileWorking ||
                 !notificationManager.isNotificationPolicyAccessGranted ||
                 timer.typeId != R.string.work
     }
@@ -152,14 +158,16 @@ class TimerService : Service() {
     }
 
     enum class Actions {
-        Launch,
-        Restart,
-        Pause,
-        Resume,
-        Stop,
+        LAUNCH,
+        RESTART,
+        PAUSE,
+        RESUME,
+        STOP,
 
-        ChangeTimerType,
-        Show,
-        Cancel
+        CHANGE_TIMER_TYPE,
+        SHOW,
+        CANCEL,
+
+        UPDATE_PREFERENCES
     }
 }

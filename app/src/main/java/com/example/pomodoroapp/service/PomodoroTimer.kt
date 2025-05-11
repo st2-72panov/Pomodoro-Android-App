@@ -1,24 +1,25 @@
 package com.example.pomodoroapp.service
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableIntStateOf
+import com.example.pomodoroapp.PreferencesStore.AppPreferences
 import com.example.pomodoroapp.R
-import com.example.pomodoroapp.util.Preferences.timerTypes
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
 class PomodoroTimer(
+    private val appPreferences: AppPreferences,
     private val onTick: () -> Unit,
     private val onComplete: () -> Unit
 ) {
     private lateinit var timer: Timer
-    var state by mutableStateOf(States.Idle)
+    var state by mutableStateOf(States.IDLE)
         private set
     var typeId by mutableIntStateOf(R.string.work)
         private set
 
-    private var _remaining = 0
+    private var _remaining = -1
     var passed by mutableIntStateOf(0)
         private set
     var uiRemainingTime: String? = null
@@ -33,43 +34,42 @@ class PomodoroTimer(
     fun resume() {
         timer = fixedRateTimer(initialDelay = 500L, period = 1000L) {
             --_remaining
-            passed++
+            ++passed
             updatePublic()
 
             if (_remaining == 0) {
                 stop()
-                state = States.Completed
+                state = States.COMPLETED
                 onComplete()
             }
             onTick()  // performs even ↑if (true)↑
         }
-        state = States.Running
+        state = States.RUNNING
     }
 
     fun restart() {
-        if (state == States.Running)
-            stop()
+        if (state == States.RUNNING) stop()
         launch()
     }
 
     fun pause() {
         timer.cancel()
-        state = States.Paused
+        state = States.PAUSED
     }
 
     fun stop() {
-        if (state == States.Running)
-            timer.cancel()
-        state = States.Idle
+        if (state == States.RUNNING) timer.cancel()
+        state = States.IDLE
     }
 
     fun changeType() {
         typeId = if (typeId == R.string.work) R.string.rest else R.string.work
-        state = States.Idle
+        state = States.IDLE
     }
 
     fun setDuration() {
-        _remaining = timerTypes[typeId]!!
+        _remaining =
+            if (typeId == R.string.work) appPreferences.workDuration else appPreferences.restDuration
         passed = 0
     }
 
@@ -79,6 +79,6 @@ class PomodoroTimer(
 
 
     enum class States {
-        Idle, Running, Paused, Completed
+        IDLE, RUNNING, PAUSED, COMPLETED
     }
 }
