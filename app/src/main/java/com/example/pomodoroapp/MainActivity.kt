@@ -9,19 +9,16 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pomodoroapp.service.TimerService
+import com.example.pomodoroapp.service.TimerServiceHelper.sendPreferencesToTimerService
 import com.example.pomodoroapp.service.TimerServiceHelper.triggerTimerService
 import com.example.pomodoroapp.ui.MainUI
 import com.example.pomodoroapp.ui.SettingsUI
 import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
-import com.example.pomodoroapp.service.TimerServiceHelper.sendPreferencesToTimerService
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.lang.Thread.sleep
 
 class MainActivity : ComponentActivity() {
     private var isBound by mutableStateOf(false)

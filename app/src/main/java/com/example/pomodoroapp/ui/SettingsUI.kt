@@ -96,7 +96,7 @@ fun SettingsUI(
                             debounceJob2 = scope2.launch {
                                 delay(500)
                                 preferencesStore.writeIntData(
-                                    minutes * 60, PreferencesStore.PreferenceName.WORK_DURATION
+                                    minutes * 60, PreferencesStore.PreferenceName.REST_DURATION
                                 )
                             }
                         })

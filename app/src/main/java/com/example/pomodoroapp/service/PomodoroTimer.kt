@@ -5,11 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.pomodoroapp.PreferencesStore.AppPreferences
 import com.example.pomodoroapp.R
+import java.util.Locale
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
 class PomodoroTimer(
-    private val appPreferences: AppPreferences,
+    private val appPreferences: AppPreferences?,
     private val onTick: () -> Unit,
     private val onComplete: () -> Unit
 ) {
@@ -67,14 +68,14 @@ class PomodoroTimer(
         state = States.IDLE
     }
 
-    fun setDuration() {
+    private fun setDuration() {
         _remaining =
-            if (typeId == R.string.work) appPreferences.workDuration else appPreferences.restDuration
+            if (typeId == R.string.work) appPreferences!!.workDuration else appPreferences!!.restDuration
         passed = 0
     }
 
     private fun updatePublic() {
-        uiRemainingTime = String.format("%02d:%02d", _remaining / 60, _remaining % 60)
+        uiRemainingTime = String.format(Locale.getDefault(), "%02d:%02d", _remaining / 60, _remaining % 60)
     }
 
 

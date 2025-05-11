@@ -59,8 +59,8 @@ class PreferencesStore(private val context: Context) {
 
     private suspend fun setDefaultPreferences() {
         context.dataStore.edit {
-            it[intKey(PreferenceName.WORK_DURATION)] = 30
-            it[intKey(PreferenceName.REST_DURATION)] = 5
+            it[intKey(PreferenceName.WORK_DURATION)] = 30 * 60
+            it[intKey(PreferenceName.REST_DURATION)] = 5 * 60
 
             it[booleanKey(PreferenceName.CHANGE_TIMER_TYPE_ON_FINISH)] = true
             it[booleanKey(PreferenceName.AUTOSTART_REST_AFTER_WORK)] = true
@@ -75,8 +75,8 @@ class PreferencesStore(private val context: Context) {
     ////////////////////////////////////////////////////////////////////////
 
     data class AppPreferences(
-        val workDuration: Int,
-        val restDuration: Int,
+        val workDuration: Int,  // in seconds
+        val restDuration: Int,  // in seconds
         val changeTimerTypeOnFinish: Boolean,
         val autostartRestAfterWork: Boolean,
         val dndWhileWorking: Boolean,  // DND = do not disturb

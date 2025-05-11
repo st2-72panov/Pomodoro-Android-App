@@ -5,6 +5,9 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.example.pomodoroapp.R
 import com.example.pomodoroapp.base.PolicyAccessNotificationService
 import com.example.pomodoroapp.PreferencesStore.AppPreferences
@@ -15,8 +18,13 @@ import kotlin.system.exitProcess
 class TimerService : Service() {
     private var interruptionFilterBeforePomodoro = 0
     private lateinit var appPreferences: AppPreferences
-    lateinit var timer: PomodoroTimer
-        private set
+    var timer by mutableStateOf(
+        PomodoroTimer(
+            null,
+            { updateForeground() },
+            { onTimerComplete() }
+        )
+    )
 
     private val binder = TimerServiceBinder()
     private lateinit var notificationManager: NotificationManager
