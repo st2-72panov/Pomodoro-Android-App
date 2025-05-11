@@ -81,7 +81,7 @@ fun SettingsUI(
                     val scope2 = rememberCoroutineScope()
 
                     CircularList(
-                        preferencesStore.appPreferences.value!!.workDuration / 60, { minutes ->
+                        preferencesStore.appPreferences!!.workDuration / 60, { minutes ->
                             debounceJob1?.cancel()
                             debounceJob1 = scope1.launch {
                                 delay(500)
@@ -91,7 +91,7 @@ fun SettingsUI(
                             }
                         })
                     CircularList(
-                        preferencesStore.appPreferences.value!!.restDuration / 60, { minutes ->
+                        preferencesStore.appPreferences!!.restDuration / 60, { minutes ->
                             debounceJob2?.cancel()
                             debounceJob2 = scope2.launch {
                                 delay(500)

@@ -1,6 +1,8 @@
 package com.example.pomodoroapp
 import android.content.Context
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -12,7 +14,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class PreferencesStore(private val context: Context) {
-    var appPreferences = mutableStateOf(null as AppPreferences?)
+    var appPreferences by mutableStateOf(null as AppPreferences?)
         private set
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("settings")
 
@@ -21,7 +23,7 @@ class PreferencesStore(private val context: Context) {
 
     suspend fun loadAppPreferences() {
         val preferences = context.dataStore.data.first()
-        appPreferences.value = AppPreferences(
+        appPreferences = AppPreferences(
             workDuration = preferences[intKey(PreferenceName.WORK_DURATION)]!!,
             restDuration = preferences[intKey(PreferenceName.REST_DURATION)]!!,
             changeTimerTypeOnFinish = preferences[booleanKey(PreferenceName.CHANGE_TIMER_TYPE_ON_FINISH)]!!,
@@ -36,14 +38,14 @@ class PreferencesStore(private val context: Context) {
         val key = intKey(preference)
         context.dataStore.edit { it[key] = value }
         loadAppPreferences()
-        sendPreferencesToTimerService(context, appPreferences.value!!)
+        sendPreferencesToTimerService(context, appPreferences!!)
     }
 
     suspend fun writeBooleanData(value: Boolean, preference: PreferenceName) {
         val key = booleanKey(preference)
         context.dataStore.edit { it[key] = value }
         loadAppPreferences()
-        sendPreferencesToTimerService(context, appPreferences.value!!)
+        sendPreferencesToTimerService(context, appPreferences!!)
     }
 
     //////////////////////////////////////////////////////////////////
@@ -51,19 +53,23 @@ class PreferencesStore(private val context: Context) {
     suspend fun setValuesForFirstLaunch() {
         val key = booleanKey(PreferenceName.APP)
         val checker = context.dataStore.data.map { it[key] }.first()
-        if (checker == null) setDefaultPreferences()
+        if (checker == null)
+            setDefaultPreferences()
     }
 
     private suspend fun setDefaultPreferences() {
-        writeIntData(30, PreferenceName.WORK_DURATION)
-        writeIntData(5, PreferenceName.REST_DURATION)
-        writeBooleanData(true, PreferenceName.CHANGE_TIMER_TYPE_ON_FINISH)
-        writeBooleanData(true, PreferenceName.AUTOSTART_REST_AFTER_WORK)
-        writeBooleanData(true, PreferenceName.DND_WHILE_WORKING)
-        writeBooleanData(false, PreferenceName.SILENT_WHILE_WORKING)
-        writeBooleanData(true, PreferenceName.MAKE_DETACHED_COMPLETION_NOTIFICATION)
+        context.dataStore.edit {
+            it[intKey(PreferenceName.WORK_DURATION)] = 30
+            it[intKey(PreferenceName.REST_DURATION)] = 5
 
-        writeBooleanData(true, PreferenceName.APP)
+            it[booleanKey(PreferenceName.CHANGE_TIMER_TYPE_ON_FINISH)] = true
+            it[booleanKey(PreferenceName.AUTOSTART_REST_AFTER_WORK)] = true
+            it[booleanKey(PreferenceName.DND_WHILE_WORKING)] = true
+            it[booleanKey(PreferenceName.SILENT_WHILE_WORKING)] = false
+            it[booleanKey(PreferenceName.MAKE_DETACHED_COMPLETION_NOTIFICATION)] = true
+
+            it[booleanKey(PreferenceName.APP)] = true
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////

@@ -50,9 +50,9 @@ fun MainUI(
     val appPreferences = preferencesStore.appPreferences
     val timerDuration =  // since typeId — mutableIntStateOf, there is no problems with plain "="
         if (timerService.timer.typeId == R.string.work)
-            appPreferences.value!!.workDuration
+            appPreferences!!.workDuration
         else
-            appPreferences.value!!.restDuration
+            appPreferences!!.restDuration
 
     val isOff = when (timerService.timer.state) {
         PomodoroTimer.States.IDLE, PomodoroTimer.States.COMPLETED -> true
@@ -191,9 +191,9 @@ fun PomodoroProgressBar(
     val appPreferences = preferencesStore.appPreferences
     val timerDuration =  // since ↓typeId↓ — mutableIntStateOf, there is no problems with plain "="
         if (timerService.timer.typeId == R.string.work)
-            appPreferences.value!!.workDuration
+            appPreferences!!.workDuration
         else
-            appPreferences.value!!.restDuration
+            appPreferences!!.restDuration
 
     val barWidth = 200
     val barHeight = 45

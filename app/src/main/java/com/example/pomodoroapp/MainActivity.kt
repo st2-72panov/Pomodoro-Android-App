@@ -21,19 +21,20 @@ import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
 import com.example.pomodoroapp.service.TimerServiceHelper.sendPreferencesToTimerService
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.lang.Thread.sleep
 
 class MainActivity : ComponentActivity() {
     private var isBound by mutableStateOf(false)
     private var timerService by mutableStateOf(null as TimerService?)
-    private var preferencesStore = PreferencesStore(applicationContext)
+    private var preferencesStore by mutableStateOf(null as PreferencesStore?)
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as TimerService.TimerServiceBinder
             timerService = binder.getService()
 
             val appPreferences = runBlocking {
-                preferencesStore.loadAppPreferences()
-                preferencesStore.appPreferences.value!!
+                preferencesStore!!.loadAppPreferences()
+                preferencesStore!!.appPreferences!!
             }
             sendPreferencesToTimerService(applicationContext, appPreferences)
             triggerTimerService(applicationContext, TimerService.Actions.SHOW)
@@ -62,9 +63,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val preferencesStore = PreferencesStore(applicationContext)
-        lifecycleScope.launch {
-            preferencesStore.setValuesForFirstLaunch()
+        preferencesStore = PreferencesStore(applicationContext)
+        runBlocking {
+            preferencesStore!!.setValuesForFirstLaunch()
         }
 
         setContent {
@@ -72,10 +73,10 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "MainUI") {
                     composable("MainUI") {
-                        if (isBound) MainUI(timerService!!, navController, preferencesStore)
+                        if (isBound) MainUI(timerService!!, navController, preferencesStore!!)
                     }
                     composable("SettingsUI") {
-                        if (isBound) SettingsUI(timerService!!, navController, preferencesStore)
+                        if (isBound) SettingsUI(timerService!!, navController, preferencesStore!!)
                     }
                 }
             }
