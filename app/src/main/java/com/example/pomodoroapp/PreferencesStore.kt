@@ -70,6 +70,7 @@ class PreferencesStore(private val context: Context) {
 
             it[booleanKey(PreferenceName.APP)] = true
         }
+        loadAppPreferences()
     }
 
     ////////////////////////////////////////////////////////////////////////
