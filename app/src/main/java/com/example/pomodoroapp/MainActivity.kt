@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
@@ -63,7 +64,13 @@ class MainActivity : ComponentActivity() {
         runBlocking { preferencesStore!!.setValuesForFirstLaunch() }
 
         setContent {
-            PomodoroAppTheme {
+            PomodoroAppTheme(
+                darkTheme = when {
+                    preferencesStore!!.appPreferences!!.alwaysDarkTheme -> true
+                    preferencesStore!!.appPreferences!!.alwaysLightTheme -> false
+                    else -> isSystemInDarkTheme()
+                }
+            ) {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "MainUI") {

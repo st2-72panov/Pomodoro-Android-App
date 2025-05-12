@@ -26,6 +26,8 @@ class PreferencesStore(private val context: Context) {
         appPreferences = AppPreferences(
             workDuration = preferences[intKey(PreferenceName.WORK_DURATION)]!!,
             restDuration = preferences[intKey(PreferenceName.REST_DURATION)]!!,
+            alwaysLightTheme = preferences[booleanKey(PreferenceName.ALWAYS_LIGHT_THEME)]!!,
+            alwaysDarkTheme = preferences[booleanKey(PreferenceName.ALWAYS_DARK_THEME)]!!,
             changeTimerTypeOnFinish = preferences[booleanKey(PreferenceName.CHANGE_TIMER_TYPE_ON_FINISH)]!!,
             autostartRestAfterWork = preferences[booleanKey(PreferenceName.AUTOSTART_REST_AFTER_WORK)]!!,
             dndWhileWorking = preferences[booleanKey(PreferenceName.DND_WHILE_WORKING)]!!,
@@ -64,6 +66,8 @@ class PreferencesStore(private val context: Context) {
             it[intKey(PreferenceName.WORK_DURATION)] = 30 * 60
             it[intKey(PreferenceName.REST_DURATION)] = 5 * 60
 
+            it[booleanKey(PreferenceName.ALWAYS_LIGHT_THEME)] = false
+            it[booleanKey(PreferenceName.ALWAYS_DARK_THEME)] = false
             it[booleanKey(PreferenceName.CHANGE_TIMER_TYPE_ON_FINISH)] = true
             it[booleanKey(PreferenceName.AUTOSTART_REST_AFTER_WORK)] = true
             it[booleanKey(PreferenceName.DND_WHILE_WORKING)] = true
@@ -80,6 +84,8 @@ class PreferencesStore(private val context: Context) {
     data class AppPreferences(
         val workDuration: Int,  // in seconds
         val restDuration: Int,  // in seconds
+        val alwaysLightTheme: Boolean,
+        val alwaysDarkTheme: Boolean,
         val changeTimerTypeOnFinish: Boolean,
         val autostartRestAfterWork: Boolean,
         val dndWhileWorking: Boolean,  // DND = do not disturb
@@ -90,6 +96,8 @@ class PreferencesStore(private val context: Context) {
     enum class PreferenceName {
         WORK_DURATION,
         REST_DURATION,
+        ALWAYS_LIGHT_THEME,
+        ALWAYS_DARK_THEME,
         CHANGE_TIMER_TYPE_ON_FINISH,
         AUTOSTART_REST_AFTER_WORK,
         DND_WHILE_WORKING,
