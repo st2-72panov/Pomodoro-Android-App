@@ -69,7 +69,9 @@ fun SettingsUI(
         // Main area
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxSize(),
         ) {
             if (timerService.timer.state == PomodoroTimer.States.RUNNING) {
                 Text(
