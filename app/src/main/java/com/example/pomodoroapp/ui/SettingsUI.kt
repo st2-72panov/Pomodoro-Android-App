@@ -144,6 +144,7 @@ fun SettingsUI(
                     onConfirmation = {
                         runBlocking { preferencesStore.setDefaultPreferences() }
                         inDialog = false
+                        navController.navigate("MainUI")
                     },
                     onDismissRequest = { inDialog = false }
                 )
