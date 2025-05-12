@@ -61,10 +61,7 @@ fun SettingsUI(
                 Icon(
                     imageVector = Icons.Default.List,
                     contentDescription = null,
-                    tint = when (timerService.timer.state) {
-                        PomodoroTimer.States.RUNNING -> MaterialTheme.colorScheme.secondary
-                        else -> MaterialTheme.colorScheme.primary
-                    }
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
