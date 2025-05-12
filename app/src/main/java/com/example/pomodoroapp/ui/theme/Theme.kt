@@ -21,15 +21,19 @@ private fun Color.darken(): Color {
 
 private val LightColorScheme = lightColorScheme(
     primary = Color.DarkGray,
+    primaryContainer = Color(0xFFEDE9EC),
+    onPrimaryContainer = Color.White,
     secondary = Color.Gray,
     secondaryContainer = SlightlyDarkerGray,
     onSecondaryContainer = Color.White,
     tertiary = SlightlyLighterGray,  // Not that tertiary (it's ~2.5-ary)
-    background = Color(0xFFFFFBFE),
+    background = LightBackgroundColor,
+
 )
 
 private val DarkColorScheme = darkColorScheme(
     primary = LightColorScheme.primary.darken(),
+    primaryContainer = LightColorScheme.primaryContainer.darken(),
     secondary = LightColorScheme.secondary.darken(),
     secondaryContainer = LightColorScheme.secondaryContainer.darken(),
     onSecondaryContainer = Color.White,

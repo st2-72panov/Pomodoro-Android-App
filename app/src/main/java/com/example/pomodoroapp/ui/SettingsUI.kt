@@ -4,6 +4,7 @@ import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,12 +14,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,8 +39,10 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.pomodoroapp.PreferencesStore
 import com.example.pomodoroapp.service.PomodoroTimer
@@ -44,6 +51,7 @@ import com.example.pomodoroapp.ui.theme.indent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun SettingsUI(
@@ -66,7 +74,7 @@ fun SettingsUI(
             }
         }
 
-        // Main area
+        // <Main area>
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
@@ -112,6 +120,33 @@ fun SettingsUI(
                         })
                 }
             }
+        }
+        // </Main area>
+
+        Box(
+            modifier = Modifier
+                .height(100.dp)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            var inDialog by remember {
+                mutableStateOf(false)
+            }
+            TextButton(
+                shape = RoundedCornerShape(10.dp),
+                contentPadding = PaddingValues(8.dp),
+                onClick = { inDialog = true }
+            ) {
+                Text("Reset preferences", color = MaterialTheme.colorScheme.secondary)
+            }
+            if (inDialog)
+                DeletionDialog(
+                    onConfirmation = {
+                        runBlocking { preferencesStore.setDefaultPreferences() }
+                        inDialog = false
+                    },
+                    onDismissRequest = { inDialog = false }
+                )
         }
     }
 }
@@ -187,5 +222,55 @@ fun CircularList(
                 )
             }
         })
+    }
+}
+
+
+@Composable
+fun DeletionDialog(
+    onDismissRequest: () -> Unit, onConfirmation: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismissRequest) {
+        Card(
+            modifier = Modifier.padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    "Are you sure",
+                    fontSize = 16.sp,
+                    modifier = Modifier
+                        .padding(0.dp, 18.dp, 0.dp, 0.dp)
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.secondary  // light
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    TextButton(
+                        onClick = { onDismissRequest() }, modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text(
+                            "Dismiss",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    TextButton(
+                        onClick = { onConfirmation() }, modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text(
+                            "Yes",
+                            color = MaterialTheme.colorScheme.primary
+                        )  // lightest
+                    }
+                }
+            }
+        }
     }
 }
