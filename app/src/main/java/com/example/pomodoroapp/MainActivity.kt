@@ -31,10 +31,7 @@ class MainActivity : ComponentActivity() {
             val binder = service as TimerService.TimerServiceBinder
             timerService = binder.getService()
 
-            val appPreferences = runBlocking {
-                preferencesStore!!.loadAppPreferences()
-                preferencesStore!!.appPreferences!!
-            }
+            val appPreferences = runBlocking { preferencesStore!!.appPreferences!! }
             sendPreferencesToTimerService(applicationContext, appPreferences)
             triggerTimerService(applicationContext, TimerService.Actions.SHOW)
 
@@ -63,9 +60,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         preferencesStore = PreferencesStore(applicationContext)
-        runBlocking {
-            preferencesStore!!.setValuesForFirstLaunch()
-        }
+        runBlocking { preferencesStore!!.setValuesForFirstLaunch() }
 
         setContent {
             PomodoroAppTheme {

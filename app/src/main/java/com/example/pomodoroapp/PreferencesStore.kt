@@ -55,9 +55,11 @@ class PreferencesStore(private val context: Context) {
         val checker = context.dataStore.data.map { it[key] }.first()
         if (checker == null)
             setDefaultPreferences()
+        else
+            loadAppPreferences()
     }
 
-    private suspend fun setDefaultPreferences() {
+    suspend fun setDefaultPreferences() {
         context.dataStore.edit {
             it[intKey(PreferenceName.WORK_DURATION)] = 30 * 60
             it[intKey(PreferenceName.REST_DURATION)] = 5 * 60
