@@ -9,7 +9,15 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
+
+private fun Color.darken(): Color {
+    val hsv = FloatArray(3)
+    ColorUtils.colorToHSL(this.toArgb(), hsv)
+    hsv[2] = 1 - hsv[2]  // lightness = 100% - lightness
+    return Color(ColorUtils.HSLToColor(hsv))
+}
 
 private val LightColorScheme = lightColorScheme(
     primary = Color.DarkGray,
@@ -21,11 +29,11 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xffc8c6c6),
-    secondary = Color(0xffc7c6c6),
-    secondaryContainer = Color(0xff747474),
+    primary = LightColorScheme.primary.darken(),
+    secondary = LightColorScheme.secondary.darken(),
+    secondaryContainer = LightColorScheme.secondaryContainer.darken(),
     onSecondaryContainer = Color.White,
-    tertiary = Color(0xffc7c6c6),
+    tertiary = LightColorScheme.tertiary.darken(),
     background = Color(0xff141313)
 )
 
@@ -44,6 +52,7 @@ fun PomodoroAppTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
+            window.navigationBarColor = colorScheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
         }
     }
