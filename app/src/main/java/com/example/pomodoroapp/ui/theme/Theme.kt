@@ -20,7 +20,9 @@ private val LightColorScheme = lightColorScheme(
     background = Color(0xFFFFFBFE),
 )
 
-private val DarkColorScheme = darkColorScheme()
+private val DarkColorScheme = darkColorScheme(
+
+)
 
 @Composable
 fun PomodoroAppTheme(
@@ -36,7 +38,7 @@ fun PomodoroAppTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = Color.Transparent.toArgb()
+            window.statusBarColor = colorScheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
         }
     }

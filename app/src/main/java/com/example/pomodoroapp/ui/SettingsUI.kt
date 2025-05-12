@@ -29,7 +29,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
@@ -61,8 +60,11 @@ fun SettingsUI(
             IconButton(onClick = { navController.navigate("MainUI") }) {
                 Icon(
                     imageVector = Icons.Default.List,
-                    tint = Color.DarkGray,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = when (timerService.timer.state) {
+                        PomodoroTimer.States.RUNNING -> MaterialTheme.colorScheme.secondary
+                        else -> MaterialTheme.colorScheme.primary
+                    }
                 )
             }
         }

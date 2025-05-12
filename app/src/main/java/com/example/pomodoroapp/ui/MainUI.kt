@@ -1,4 +1,5 @@
 package com.example.pomodoroapp.ui
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -69,7 +70,10 @@ fun MainUI(
                 Icon(
                     imageVector = Icons.Default.List,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = when (timerService.timer.state) {
+                        PomodoroTimer.States.RUNNING -> MaterialTheme.colorScheme.secondary
+                        else -> MaterialTheme.colorScheme.primary
+                    }
                 )
             }
         }

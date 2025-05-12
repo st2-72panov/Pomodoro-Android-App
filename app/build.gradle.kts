@@ -5,11 +5,13 @@ plugins {
 
 android {
     namespace = "com.example.pomodoroapp"
+    //noinspection GradleDependency
     compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.pomodoroapp"
         minSdk = 31
+        //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
