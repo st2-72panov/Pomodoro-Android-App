@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,7 +61,7 @@ fun SettingsUI(
             IconButton(onClick = { navController.navigate("MainUI") }) {
                 Icon(
                     imageVector = Icons.Default.List,
-                    //painter = painterResource(R.drawable.ic_settings),
+                    tint = Color.DarkGray,
                     contentDescription = null
                 )
             }
@@ -71,9 +73,16 @@ fun SettingsUI(
             modifier = Modifier.fillMaxSize(),
         ) {
             if (timerService.timer.state == PomodoroTimer.States.RUNNING) {
-                Text("Pause the timer to change the settings")
+                Text(
+                    "Pause the timer to change the settings",
+                    color = MaterialTheme.colorScheme.primary
+                )
             } else {
-                Text(AnnotatedString("Timers' durations"))
+                Text(
+                    AnnotatedString("Timers' durations"),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.height(5.dp))
                 Row(horizontalArrangement = Arrangement.Center) {
                     var debounceJob1: Job? = null
                     val scope1 = rememberCoroutineScope()
@@ -119,8 +128,8 @@ fun CircularList(
     val itemHeight = 30.dp
     val items = (1..120).toList()
     val textStyle = TextStyle(fontSize = 11.sp)
-    val textColor = Color.LightGray
-    val selectedTextColor = Color.Black
+    val textColor = MaterialTheme.colorScheme.secondary
+    val selectedTextColor = MaterialTheme.colorScheme.primary
 
     val itemHalfHeight = LocalDensity.current.run { itemHeight.toPx() / 2f }
     val scrollState = rememberLazyListState(0)

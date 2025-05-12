@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,8 +39,6 @@ import com.example.pomodoroapp.R
 import com.example.pomodoroapp.service.PomodoroTimer
 import com.example.pomodoroapp.service.TimerService
 import com.example.pomodoroapp.service.TimerServiceHelper
-import com.example.pomodoroapp.ui.theme.Gray
-import com.example.pomodoroapp.ui.theme.LightGray
 import com.example.pomodoroapp.ui.theme.indent
 
 @Composable
@@ -69,8 +68,8 @@ fun MainUI(
             IconButton({ navController.navigate("SettingsUI") }, enabled = isOff) {
                 Icon(
                     imageVector = Icons.Default.List,
-                    //painter = painterResource(R.drawable.ic_settings),
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -90,7 +89,7 @@ fun MainUI(
                     Icon(
                         painterResource(R.drawable.baseline_play_arrow_48),
                         null,
-                        tint = Color.DarkGray
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             else PomodoroProgressBar(timerService, preferencesStore)
@@ -100,14 +99,16 @@ fun MainUI(
             // <Timer name>
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painterResource(R.drawable.baseline_swap_vert_16), null, tint = LightGray
+                    painterResource(R.drawable.baseline_swap_vert_16),
+                    null,
+                    tint = MaterialTheme.colorScheme.tertiary
                 )
 
                 Spacer(modifier = Modifier.size(2.dp))
 
                 ClickableText(
                     text = AnnotatedString(context.resources.getString(timerService.timer.typeId)),
-                    style = TextStyle(fontSize = 16.sp)
+                    style = TextStyle(fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
                 ) { _ ->
                     if (isOff) {
                         TimerServiceHelper.triggerTimerService(
@@ -123,7 +124,7 @@ fun MainUI(
                         (timerDuration / 60).toString() + " min"
                     ), style = TextStyle(
                         fontFamily = FontFamily.SansSerif, fontSize = 14.sp
-                    ), color = Gray
+                    ), color = MaterialTheme.colorScheme.tertiary
                 )
             }
             // </Timer name>
@@ -144,13 +145,13 @@ fun MainUI(
                             painterResource(R.drawable.baseline_stop_48),
                             null,
                             Modifier.size(36.dp),
-                            Color.DarkGray
+                            MaterialTheme.colorScheme.primary
                         )
                     }
 
                     // Suspend / Resume
                     val modifier = Modifier.size(36.dp)
-                    val color = Color.DarkGray
+                    val color = MaterialTheme.colorScheme.primary
                     if (timerService.timer.state == PomodoroTimer.States.PAUSED) {
                         IconButton(onClick = {
                             TimerServiceHelper.triggerTimerService(
@@ -213,10 +214,12 @@ fun PomodoroProgressBar(
             Modifier
                 .size(barWidth.dp, barHeight.dp)
                 .border(
-                    borderWidth.dp, Color.DarkGray,
-//                                            Color(0xFF585858),
+                    borderWidth.dp,
+                    MaterialTheme.colorScheme.primary,
                     RoundedCornerShape(5.dp)
-                ), RoundedCornerShape(5.dp), Gray
+                ),
+            RoundedCornerShape(5.dp),
+            MaterialTheme.colorScheme.secondaryContainer
         ) {
             val padding = borderWidth + 7
             BoxWithConstraints(
@@ -235,11 +238,11 @@ fun PomodoroProgressBar(
                             ((maxWidth.value - 9 * spacing) / 10).dp
                         )
                         .background(
-                            if (timerService.timer.state == PomodoroTimer.States.RUNNING) Color.White
-                            else Color.Gray
+                            if (timerService.timer.state == PomodoroTimer.States.RUNNING) MaterialTheme.colorScheme.onSecondaryContainer
+                            else MaterialTheme.colorScheme.secondary
                         )
                     val quantityOfBoxes: Int = 10 * timerService.timer.passed / timerDuration
-                    for (i in 0 ..< quantityOfBoxes - 1) {
+                    for (i in 0..<quantityOfBoxes - 1) {
                         Box(modifier)
                         Spacer(Modifier.width(spacing.dp))
                     }
@@ -258,7 +261,7 @@ fun PomodoroProgressBar(
                 painterResource(R.drawable.rounded_refresh_30),
                 null,
                 Modifier.size(30.dp),
-                Color.Gray
+                MaterialTheme.colorScheme.secondary
             )
         }
     }
