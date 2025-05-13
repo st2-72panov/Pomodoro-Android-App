@@ -1,4 +1,5 @@
 package com.example.pomodoroapp
+
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,9 +14,14 @@ import com.example.pomodoroapp.service.TimerServiceHelper.sendPreferencesToTimer
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
+// TODO: make constructor that includes running setValuesForFirstLaunch()
 class DataStoreManager(private val context: Context) {
     var appPreferences by mutableStateOf(null as AppPreferences?)
         private set
+    // If Flow is used instead,
+    // we must place viewModel.*pref_name*.observe(this) for every preference (into MainActivity)
+    // TODO: replace appPreferences with Flow that changes with every prefs change
+    //  so there is no need of loadAppPreferences function
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("settings")
 
     private fun intKey(preference: PreferenceName) = intPreferencesKey(preference.name)
@@ -40,14 +46,14 @@ class DataStoreManager(private val context: Context) {
         val key = intKey(preference)
         context.dataStore.edit { it[key] = value }
         loadAppPreferences()
-        sendPreferencesToTimerService(context, appPreferences!!)
+        sendPreferencesToTimerService(context, appPreferences!!)  // TODO: move this line into viewModel
     }
 
     suspend fun writeBooleanData(value: Boolean, preference: PreferenceName) {
         val key = booleanKey(preference)
         context.dataStore.edit { it[key] = value }
         loadAppPreferences()
-        sendPreferencesToTimerService(context, appPreferences!!)
+        sendPreferencesToTimerService(context, appPreferences!!)  // TODO: move this line into viewModel
     }
 
     //////////////////////////////////////////////////////////////////

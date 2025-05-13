@@ -15,7 +15,7 @@ class PomodoroTimer(
     private val onComplete: () -> Unit
 ) {
     private lateinit var timer: Timer
-    var state by mutableStateOf(States.IDLE)
+    var state by mutableStateOf(States.IDLE)  // TODO: replace with Flow (for making a new Flow variable in viewModel, that is subscribed to changes of this variable)
         private set
     var typeId by mutableIntStateOf(R.string.work)
         private set

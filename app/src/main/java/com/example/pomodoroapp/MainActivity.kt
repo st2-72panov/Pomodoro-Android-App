@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -24,15 +25,18 @@ import com.example.pomodoroapp.ui.theme.PomodoroAppTheme
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
+    // TODO: move connection stuff into the viewModel
     private var isBound by mutableStateOf(false)
     private var timerService by mutableStateOf(null as TimerService?)
-    private var dataStoreManager by mutableStateOf(null as DataStoreManager?)
+    private val viewModel: MainViewModel by viewModels {
+        MainViewModel.MainViewModelFactory(application)
+    }
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as TimerService.TimerServiceBinder
             timerService = binder.getService()
 
-            val appPreferences = runBlocking { dataStoreManager!!.appPreferences!! }
+            val appPreferences = runBlocking { viewModel.dataStoreManager.appPreferences!! }
             sendPreferencesToTimerService(applicationContext, appPreferences)
             triggerTimerService(applicationContext, TimerService.Actions.SHOW)
 
@@ -60,14 +64,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        dataStoreManager = DataStoreManager(applicationContext)
-        runBlocking { dataStoreManager!!.setValuesForFirstLaunch() }
+        runBlocking { viewModel.dataStoreManager.setValuesForFirstLaunch() }  // TODO: remove line
 
         setContent {
             PomodoroAppTheme(
                 darkTheme = when {
-                    dataStoreManager!!.appPreferences!!.alwaysDarkTheme -> true
-                    dataStoreManager!!.appPreferences!!.alwaysLightTheme -> false
+                    viewModel.dataStoreManager.appPreferences!!.alwaysDarkTheme -> true
+                    viewModel.dataStoreManager.appPreferences!!.alwaysLightTheme -> false
                     else -> isSystemInDarkTheme()
                 }
             ) {
@@ -75,10 +78,10 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "MainUI") {
                         composable("MainUI") {
-                            if (isBound) MainUI(timerService!!, navController, dataStoreManager!!)
+                            if (isBound) MainUI(timerService!!, navController, viewModel.dataStoreManager)
                         }
                         composable("SettingsUI") {
-                            if (isBound) SettingsUI(timerService!!, navController, dataStoreManager!!)
+                            if (isBound) SettingsUI(timerService!!, navController, viewModel.dataStoreManager)
                         }
                     }
                 }
