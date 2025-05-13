@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.pomodoroapp.R
 import com.example.pomodoroapp.base.PolicyAccessNotificationService
-import com.example.pomodoroapp.PreferencesStore.AppPreferences
+import com.example.pomodoroapp.DataStoreManager.AppPreferences
 import com.google.gson.Gson
 import kotlin.math.max
 import kotlin.system.exitProcess

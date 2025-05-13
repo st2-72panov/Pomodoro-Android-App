@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import com.example.pomodoroapp.PreferencesStore
+import com.example.pomodoroapp.DataStoreManager
 import com.example.pomodoroapp.service.PomodoroTimer
 import com.example.pomodoroapp.service.TimerService
 import com.example.pomodoroapp.ui.theme.indent
@@ -55,7 +55,7 @@ import kotlinx.coroutines.runBlocking
 
 @Composable
 fun SettingsUI(
-    timerService: TimerService, navController: NavController, preferencesStore: PreferencesStore
+    timerService: TimerService, navController: NavController, dataStoreManager: DataStoreManager
 ) {
     Column {
         // Upper buttons
@@ -99,22 +99,22 @@ fun SettingsUI(
                     val scope2 = rememberCoroutineScope()
 
                     CircularList(
-                        preferencesStore.appPreferences!!.workDuration / 60, { minutes ->
+                        dataStoreManager.appPreferences!!.workDuration / 60, { minutes ->
                             debounceJob1?.cancel()
                             debounceJob1 = scope1.launch {
                                 delay(500)
-                                preferencesStore.writeIntData(
-                                    minutes * 60, PreferencesStore.PreferenceName.WORK_DURATION
+                                dataStoreManager.writeIntData(
+                                    minutes * 60, DataStoreManager.PreferenceName.WORK_DURATION
                                 )
                             }
                         })
                     CircularList(
-                        preferencesStore.appPreferences!!.restDuration / 60, { minutes ->
+                        dataStoreManager.appPreferences!!.restDuration / 60, { minutes ->
                             debounceJob2?.cancel()
                             debounceJob2 = scope2.launch {
                                 delay(500)
-                                preferencesStore.writeIntData(
-                                    minutes * 60, PreferencesStore.PreferenceName.REST_DURATION
+                                dataStoreManager.writeIntData(
+                                    minutes * 60, DataStoreManager.PreferenceName.REST_DURATION
                                 )
                             }
                         })
@@ -142,7 +142,7 @@ fun SettingsUI(
             if (inDialog)
                 DeletionDialog(
                     onConfirmation = {
-                        runBlocking { preferencesStore.setDefaultPreferences() }
+                        runBlocking { dataStoreManager.setDefaultPreferences() }
                         inDialog = false
                         navController.navigate("MainUI")
                     },

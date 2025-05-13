@@ -3,7 +3,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.pomodoroapp.PreferencesStore.AppPreferences
+import com.example.pomodoroapp.DataStoreManager.AppPreferences
 import com.example.pomodoroapp.R
 import java.util.Locale
 import java.util.Timer

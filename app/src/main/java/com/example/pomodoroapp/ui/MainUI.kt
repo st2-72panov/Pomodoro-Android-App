@@ -35,7 +35,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.pomodoroapp.PreferencesStore
+import com.example.pomodoroapp.DataStoreManager
 import com.example.pomodoroapp.R
 import com.example.pomodoroapp.service.PomodoroTimer
 import com.example.pomodoroapp.service.TimerService
@@ -44,10 +44,10 @@ import com.example.pomodoroapp.ui.theme.indent
 
 @Composable
 fun MainUI(
-    timerService: TimerService, navController: NavController, preferencesStore: PreferencesStore
+    timerService: TimerService, navController: NavController, dataStoreManager: DataStoreManager
 ) {
     val context = LocalContext.current
-    val appPreferences = preferencesStore.appPreferences
+    val appPreferences = dataStoreManager.appPreferences
     val timerDuration =  // since typeId — mutableIntStateOf, there is no problems with plain "="
         if (timerService.timer.typeId == R.string.work)
             appPreferences!!.workDuration
@@ -96,7 +96,7 @@ fun MainUI(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-            else PomodoroProgressBar(timerService, preferencesStore)
+            else PomodoroProgressBar(timerService, dataStoreManager)
 
             Spacer(Modifier.size(12.dp))
 
@@ -190,10 +190,10 @@ fun MainUI(
 
 @Composable
 fun PomodoroProgressBar(
-    timerService: TimerService, preferencesStore: PreferencesStore
+    timerService: TimerService, dataStoreManager: DataStoreManager
 ) {
     val context = LocalContext.current
-    val appPreferences = preferencesStore.appPreferences
+    val appPreferences = dataStoreManager.appPreferences
     val timerDuration =  // since ↓typeId↓ — mutableIntStateOf, there is no problems with plain "="
         if (timerService.timer.typeId == R.string.work)
             appPreferences!!.workDuration

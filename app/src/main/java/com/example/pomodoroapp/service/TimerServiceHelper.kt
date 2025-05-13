@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.example.pomodoroapp.MainActivity
-import com.example.pomodoroapp.PreferencesStore.AppPreferences
+import com.example.pomodoroapp.DataStoreManager.AppPreferences
 import com.example.pomodoroapp.R
 import com.google.gson.Gson
 

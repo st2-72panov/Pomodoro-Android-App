@@ -13,7 +13,7 @@ import com.example.pomodoroapp.service.TimerServiceHelper.sendPreferencesToTimer
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-class PreferencesStore(private val context: Context) {
+class DataStoreManager(private val context: Context) {
     var appPreferences by mutableStateOf(null as AppPreferences?)
         private set
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("settings")

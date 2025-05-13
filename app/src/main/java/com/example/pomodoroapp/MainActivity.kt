@@ -26,13 +26,13 @@ import kotlinx.coroutines.runBlocking
 class MainActivity : ComponentActivity() {
     private var isBound by mutableStateOf(false)
     private var timerService by mutableStateOf(null as TimerService?)
-    private var preferencesStore by mutableStateOf(null as PreferencesStore?)
+    private var dataStoreManager by mutableStateOf(null as DataStoreManager?)
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as TimerService.TimerServiceBinder
             timerService = binder.getService()
 
-            val appPreferences = runBlocking { preferencesStore!!.appPreferences!! }
+            val appPreferences = runBlocking { dataStoreManager!!.appPreferences!! }
             sendPreferencesToTimerService(applicationContext, appPreferences)
             triggerTimerService(applicationContext, TimerService.Actions.SHOW)
 
@@ -60,14 +60,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        preferencesStore = PreferencesStore(applicationContext)
-        runBlocking { preferencesStore!!.setValuesForFirstLaunch() }
+        dataStoreManager = DataStoreManager(applicationContext)
+        runBlocking { dataStoreManager!!.setValuesForFirstLaunch() }
 
         setContent {
             PomodoroAppTheme(
                 darkTheme = when {
-                    preferencesStore!!.appPreferences!!.alwaysDarkTheme -> true
-                    preferencesStore!!.appPreferences!!.alwaysLightTheme -> false
+                    dataStoreManager!!.appPreferences!!.alwaysDarkTheme -> true
+                    dataStoreManager!!.appPreferences!!.alwaysLightTheme -> false
                     else -> isSystemInDarkTheme()
                 }
             ) {
@@ -75,10 +75,10 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "MainUI") {
                         composable("MainUI") {
-                            if (isBound) MainUI(timerService!!, navController, preferencesStore!!)
+                            if (isBound) MainUI(timerService!!, navController, dataStoreManager!!)
                         }
                         composable("SettingsUI") {
-                            if (isBound) SettingsUI(timerService!!, navController, preferencesStore!!)
+                            if (isBound) SettingsUI(timerService!!, navController, dataStoreManager!!)
                         }
                     }
                 }
